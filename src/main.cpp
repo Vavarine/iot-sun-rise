@@ -106,8 +106,7 @@ void serverSetup()
     return;
   }
 
-  server.on("/api", []()
-            { server.send(200, "text/plain", "hello from esp8266!"); });
+  server.on("/api", handleRoot);
 
   server.onNotFound(handleNotFound);
 
