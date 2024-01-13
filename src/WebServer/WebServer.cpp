@@ -1,6 +1,8 @@
 #include <ESP8266WebServer.h>
 #include "LittleFS.h"
 #include "WebServer.h"
+#include "utils/utils.h"
+#include "constants.h"
 
 WebServer::WebServer(int port) : server(port) {}
 
@@ -24,7 +26,6 @@ void WebServer::handleClient() {
 }
 
 void WebServer::on(const String &uri, HTTPMethod method, ESP8266WebServer::THandlerFunction handler) {
-  blink(1, 100);
   Serial.println(method + " " + uri);
   server.on(uri, method, handler);
 }
@@ -41,6 +42,8 @@ void WebServer::handleNotFound() {
 }
 
 bool WebServer::handleFileRead(String path) {
+  blink(1, 100, DEBUG_LED);
+
   if (path.endsWith("/")) {
     path += "index.html";
   }
@@ -77,13 +80,4 @@ String WebServer::getContentType(String filename) {
     return "image/svg+xml";
 
   return "text/plain";
-}
-
-void WebServer::blink(int times, int delayMs, int LED) {
-  for (int i = 0; i < times; i++) {
-    delay(delayMs);
-    digitalWrite(LED, LOW);
-    delay(delayMs);
-    digitalWrite(LED, HIGH);
-  }
 }

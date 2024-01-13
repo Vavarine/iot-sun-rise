@@ -24,8 +24,6 @@ private:
   bool handleFileRead(String path);
 
   String getContentType(String filename);
-
-  void blink(int times, int delayMs, int LED = D4);
 };
 
 #endif

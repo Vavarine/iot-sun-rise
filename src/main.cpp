@@ -3,22 +3,12 @@
 #include "LittleFS.h"
 #include "secrets.h"
 #include "WebServer/WebServer.h"
-
-#define LED D4
+#include "utils/utils.h"
+#include "constants.h"
 
 WebServer webServer;
 
-void blink(int times, int delayMs, int LED = D4) {
-  for (int i = 0; i < times; i++) {
-    delay(delayMs);
-    digitalWrite(LED, LOW);
-    delay(delayMs);
-    digitalWrite(LED, HIGH);
-  }
-}
-
-void connectToWifi(const char *ssid, const char *password)
-{
+void connectToWifi(const char *ssid, const char *password) {
   Serial.println("");
   Serial.print("Connecting to ");
   Serial.println(ssid);
@@ -31,7 +21,7 @@ void connectToWifi(const char *ssid, const char *password)
     Serial.print(".");
   }
 
-  blink(3, 100);
+  blink(3, 100, DEBUG_LED);
   Serial.println("");
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
@@ -39,15 +29,16 @@ void connectToWifi(const char *ssid, const char *password)
 }
 
 void handleRoot() {
+  blink(1, 100, DEBUG_LED);
+
   webServer.send(200, "text/plain", "hello from esp8266!");
 }
 
-void setup()
-{
-  pinMode(LED, OUTPUT);
-  blink(2, 100);
-
+void setup() {
+  pinMode(DEBUG_LED, OUTPUT);
   Serial.begin(9600);
+
+  blink(2, 100, DEBUG_LED);
 
   connectToWifi(SECRET_SSID, SECRET_PASSWORD);
   
@@ -56,7 +47,6 @@ void setup()
   webServer.on("/api", HTTP_GET, handleRoot);
 }
 
-void loop()
-{
+void loop() {
   webServer.handleClient();
 }
