@@ -16,6 +16,8 @@ public:
 
   void send(int code, const String &content_type, const String &content);
 
+  String arg(const String &name);
+
 private:
   ESP8266WebServer server;
 

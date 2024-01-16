@@ -34,6 +34,10 @@ void WebServer::send(int code, const String &content_type, const String &content
   server.send(code, content_type, content);
 }
 
+String WebServer::arg(const String &name) {
+  return server.arg(name);
+}
+
 void WebServer::handleNotFound() {
   if (!handleFileRead(server.uri())) {
     // return index.html if it doesn't exist
@@ -48,8 +52,6 @@ bool WebServer::handleFileRead(String path) {
     path += "index.html";
   }
 
-  Serial.println("handleFileRead: " + path);
-
   String contentType = getContentType(path);
 
   if (LittleFS.exists(path)) {
@@ -60,7 +62,6 @@ bool WebServer::handleFileRead(String path) {
     return true;
   }
 
-  Serial.println("\tFile Not Found");
   return false;
 }
 
