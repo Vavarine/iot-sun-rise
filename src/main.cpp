@@ -24,7 +24,7 @@ const uint16_t kMinUnknownSize = 12;
 const uint8_t kTolerancePercentage = kTolerance;
 
 IRrecv irrecv(kRecvPin, kCaptureBufferSize, kTimeout, true);
-IRsend irsend(kIrLed);
+IRsend irsend(kIrLed); 
 decode_results results;  // Somewhere to store the results
 
 WebServer webServer;
@@ -78,6 +78,12 @@ void handleRoot() {
   webServer.send(200, "text/plain", "hello from esp8266!");
 }
 
+void setupIrReceiver() {
+  irrecv.setUnknownThreshold(kMinUnknownSize);
+  irrecv.setTolerance(kTolerancePercentage);  // Override the default tolerance.
+  irrecv.enableIRIn();  // Start the receiver
+}
+
 void setup() {
   Serial.begin(kBaudRate, SERIAL_8N1, SERIAL_TX_ONLY);
 
@@ -89,9 +95,7 @@ void setup() {
 
   Serial.printf("\n" D_STR_IRRECVDUMP_STARTUP "\n", kRecvPin);
   
-  irrecv.setUnknownThreshold(kMinUnknownSize);
-  irrecv.setTolerance(kTolerancePercentage);  // Override the default tolerance.
-  irrecv.enableIRIn();  // Start the receiver
+  // setupIrReceiver();
 
   irsend.begin();
 
