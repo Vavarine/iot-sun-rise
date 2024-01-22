@@ -1,24 +1,30 @@
 import { useLocation } from "preact-iso";
+import sunRiseIcon from "../assets/sunrise.svg?raw";
+import moreHorizontalIcon from "../assets/more-horizontal.svg?raw";
+import Icon from "./Icon";
 
 export function Header() {
   const { url } = useLocation();
 
   return (
-    <header>
-      <div className="navbar bg-base-100">
-        <div className="flex-1">
-          <a className="btn btn-ghost text-xl">Arduino SunRise</a>
+    <header class="">
+      <div class="navbar rounded-b-xl shadow-xl overflow-visible">
+        <div class="flex-1">
+          <a class="btn btn-ghost text-xl gap-2">
+            <Icon icon={sunRiseIcon} size={24} />
+            SunRise
+          </a>
         </div>
-        <nav className="flex-none">
-          <ul class="menu menu-horizontal gap-1 px-1">
+        <div class="flex-none dropdown dropdown-end">
+          <div class="btn btn-square btn-ghost" role="button" tabIndex={0}>
+            <Icon icon={moreHorizontalIcon} />
+          </div>
+          <ul class="menu menu-sm dropdown-content shadow rounded-box mt-4 bg-base-200">
             <li>
-              <a href="/">RC</a>
-            </li>
-            <li>
-              <a href="/light-alarm">Light Alarm</a>
+              <a href="/">Logout</a>
             </li>
           </ul>
-        </nav>
+        </div>
       </div>
     </header>
   );

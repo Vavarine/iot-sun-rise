@@ -4,20 +4,23 @@ import { LocationProvider, Router, Route } from "preact-iso";
 import { Header } from "./components/Header.jsx";
 import { RemoteControl } from "./pages/RemoteControl/index.js";
 import { NotFound } from "./pages/_404.jsx";
-import "./index.css";
 import { LightAlarm } from "./pages/LightAlarm/index.js";
+import { Footer } from "./components/Footer.js";
+
+import "./index.css";
 
 export function App() {
   return (
     <LocationProvider>
       <Header />
-      <main>
+      <main class="flex flex-col items-center mb-auto">
         <Router>
           <Route path="/" component={RemoteControl} />
           <Route path="/light-alarm" component={LightAlarm} />
           <Route default component={NotFound} />
         </Router>
       </main>
+      <Footer />
     </LocationProvider>
   );
 }
