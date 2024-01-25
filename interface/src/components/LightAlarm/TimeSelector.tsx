@@ -1,37 +1,50 @@
-import { useEffect, useRef } from "preact/hooks";
-import { VerticalCarousel } from "./VerticalCarousel";
+import { useEffect, useRef, useState } from "preact/hooks";
+import { VerticalCarousel, VerticalCarouselItem } from "./VerticalCarousel";
 
-export function TimeSelector() {
-  const container = useRef<HTMLDivElement>(null);
+interface TimeSelectorProps {
+  hour?: number;
+  minute?: number;
+}
+
+export function TimeSelector({ hour, minute }: TimeSelectorProps) {
+  const [selectedHour, setSelectedHour] = useState<number>(hour);
+  const [selectedMinute, setSelectedMinute] = useState<number>(minute);
+
+  const handleHourChange = (index: number) => {
+    setSelectedHour(index);
+  };
+
+  const handleMinuteChange = (index: number) => {
+    setSelectedMinute(index);
+  };
+
+  useEffect(() => {
+    console.log("hour", selectedHour);
+    console.log("minute", selectedMinute);
+  }, [selectedHour, selectedMinute]);
 
   return (
-    <div class="flex items-center" ref={container}>
-      <VerticalCarousel>
+    <div class="flex items-center">
+      <VerticalCarousel defaultIndex={hour} onChange={handleHourChange}>
         {[...Array(24)].map((_, i) => {
           return (
-            <div
-              class="carousel-item opacity-20 data-[visible=true]:opacity-100 transition-opacity"
-              data-value={i}
-            >
-              <div class="flex justify-center items-center h-full">
-                <span class="text-5xl font-mono">{i.toString().padStart(2, "0")}</span>
-              </div>
-            </div>
+            <VerticalCarouselItem index={i}>
+              <span class="text-7xl font-mono">
+                {i.toString().padStart(2, "0")}
+              </span>
+            </VerticalCarouselItem>
           );
         })}
       </VerticalCarousel>
       <span class="text-5xl font-mono">:</span>
-      <VerticalCarousel>
+      <VerticalCarousel defaultIndex={minute} onChange={handleMinuteChange}>
         {[...Array(60)].map((_, i) => {
           return (
-            <div
-              class="carousel-item opacity-20 data-[visible=true]:opacity-100 transition-opacity"
-              data-value={i}
-            >
-              <div class="flex justify-center items-center h-full">
-                <span class="text-5xl font-mono">{i.toString().padStart(2, "0")}</span>
-              </div>
-            </div>
+            <VerticalCarouselItem index={i}>
+              <span class="text-7xl font-mono">
+                {i.toString().padStart(2, "0")}
+              </span>
+            </VerticalCarouselItem>
           );
         })}
       </VerticalCarousel>

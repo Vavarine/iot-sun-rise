@@ -1,6 +1,6 @@
 import { useState } from "preact/hooks";
-import { AlarmTableRow } from "@/components/LightAlarm/AlarmTableRow";
 import { Alarm } from "@/types";
+import { AlarmTableRow } from "@/components/LightAlarm/AlarmTableRow";
 
 export function LightAlarm() {
   const [alarms, setAlarms] = useState<Alarm[]>([
@@ -20,54 +20,54 @@ export function LightAlarm() {
       },
       enabled: true,
     },
-    {
-      time: {
-        hour: 8,
-        minute: 30,
-      },
-      days: {
-        sunday: false,
-        monday: true,
-        tuesday: true,
-        wednesday: false,
-        thursday: true,
-        friday: true,
-        saturday: false,
-      },
-      enabled: false,
-    },
-    {
-      time: {
-        hour: 7,
-        minute: 30,
-      },
-      days: {
-        sunday: false,
-        monday: true,
-        tuesday: true,
-        wednesday: true,
-        thursday: true,
-        friday: true,
-        saturday: false,
-      },
-      enabled: false,
-    },
-    {
-      time: {
-        hour: 7,
-        minute: 30,
-      },
-      days: {
-        sunday: false,
-        monday: true,
-        tuesday: true,
-        wednesday: true,
-        thursday: true,
-        friday: true,
-        saturday: false,
-      },
-      enabled: true,
-    },
+    // {
+    //   time: {
+    //     hour: 8,
+    //     minute: 30,
+    //   },
+    //   days: {
+    //     sunday: false,
+    //     monday: true,
+    //     tuesday: true,
+    //     wednesday: false,
+    //     thursday: true,
+    //     friday: true,
+    //     saturday: false,
+    //   },
+    //   enabled: false,
+    // },
+    // {
+    //   time: {
+    //     hour: 7,
+    //     minute: 30,
+    //   },
+    //   days: {
+    //     sunday: false,
+    //     monday: true,
+    //     tuesday: true,
+    //     wednesday: true,
+    //     thursday: true,
+    //     friday: true,
+    //     saturday: false,
+    //   },
+    //   enabled: false,
+    // },
+    // {
+    //   time: {
+    //     hour: 7,
+    //     minute: 30,
+    //   },
+    //   days: {
+    //     sunday: false,
+    //     monday: true,
+    //     tuesday: true,
+    //     wednesday: true,
+    //     thursday: true,
+    //     friday: true,
+    //     saturday: false,
+    //   },
+    //   enabled: true,
+    // },
   ]);
 
   return (

@@ -1,3 +1,4 @@
+// import "preact/debug";
 import { render } from "preact";
 import { LocationProvider, Router, Route } from "preact-iso";
 

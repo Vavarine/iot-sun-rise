@@ -6,9 +6,9 @@ export default defineConfig({
   plugins: [preact()],
   resolve: {
     alias: {
-      "@": "/src",
       "@components": "/src/components",
       "@assets": "/src/assets",
+      "@": "/src",
     },
   },
 });
