@@ -1,6 +1,6 @@
 import { useLocation } from "preact-iso";
-import sunRiseIcon from "../assets/sunrise.svg?raw";
-import moreHorizontalIcon from "../assets/more-horizontal.svg?raw";
+import sunRiseIcon from "@assets/sunrise.svg?raw";
+import moreHorizontalIcon from "@assets/more-horizontal.svg?raw";
 import Icon from "./Icon";
 
 export function Header() {
