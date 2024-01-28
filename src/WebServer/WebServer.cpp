@@ -26,7 +26,6 @@ void WebServer::handleClient() {
 }
 
 void WebServer::on(const String &uri, HTTPMethod method, ESP8266WebServer::THandlerFunction handler) {
-  Serial.println(method + " " + uri);
   server.on(uri, method, handler);
 }
 
