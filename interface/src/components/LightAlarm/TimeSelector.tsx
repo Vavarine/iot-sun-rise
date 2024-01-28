@@ -29,21 +29,17 @@ export function TimeSelector({ hour, minute }: TimeSelectorProps) {
         {[...Array(24)].map((_, i) => {
           return (
             <VerticalCarouselItem index={i}>
-              <span class="text-7xl font-mono">
-                {i.toString().padStart(2, "0")}
-              </span>
+              <span class="text-7xl">{i.toString().padStart(2, "0")}</span>
             </VerticalCarouselItem>
           );
         })}
       </VerticalCarousel>
-      <span class="text-5xl font-mono">:</span>
+      <span class="text-5xl">:</span>
       <VerticalCarousel defaultIndex={minute} onChange={handleMinuteChange}>
         {[...Array(60)].map((_, i) => {
           return (
             <VerticalCarouselItem index={i}>
-              <span class="text-7xl font-mono">
-                {i.toString().padStart(2, "0")}
-              </span>
+              <span class="text-7xl">{i.toString().padStart(2, "0")}</span>
             </VerticalCarouselItem>
           );
         })}

@@ -118,7 +118,7 @@ export function VerticalCarousel({
   return (
     <div
       ref={ref}
-      class="h-52 space-y-4 p-4 py-5 carousel carousel-center carousel-vertical rounded-box"
+      class="h-44 space-y-4 p-4 py-5 carousel carousel-center carousel-vertical rounded-box"
     >
       {children}
     </div>
