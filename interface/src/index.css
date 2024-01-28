@@ -3,6 +3,9 @@
 @tailwind utilities;
 
 @layer base {
+  body {
+    @apply font-mono
+  }
   /* body {
     height: 100vh;
   }
