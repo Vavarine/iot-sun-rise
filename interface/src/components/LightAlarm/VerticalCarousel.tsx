@@ -34,6 +34,7 @@ export function VerticalCarouselItem({
   return (
     <div
       class="carousel-item opacity-20 data-[visible=true]:opacity-100 transition-opacity"
+      // class="carousel-item border border-solid border-blue-900"
       data-index={index}
     >
       <div class="flex justify-center items-center h-full">{children}</div>
@@ -59,7 +60,6 @@ export function VerticalCarousel({
     );
     const activeIndex = parseInt(activeItem.getAttribute("data-index"));
 
-    console.log("scroll end");
     onChange?.(activeIndex);
   };
 
@@ -101,30 +101,68 @@ export function VerticalCarousel({
   };
 
   const scrollTo = (index: number) => {
-    const items = ref?.current.querySelectorAll(".carousel-item");
+    const items = [
+      ...ref?.current.querySelectorAll<HTMLDivElement>(".carousel-item"),
+    ];
 
-    if (!items) {
-      return;
-    }
+    if (!items) return;
 
-    const item = items[index];
+    const activeItemIndex = items.findIndex(
+      (item) => item.getAttribute("data-visible") === "true"
+    );
 
-    if (!isHTMLElement(item)) {
-      return;
-    }
+    const activeItem = items[activeItemIndex];
+    const possibleTargets = items.filter(
+      (item) => item.getAttribute("data-index") === index.toString()
+    );
 
-    const itemRect = item.getBoundingClientRect();
-    const container = ref?.current;
-    const containerRect = container.getBoundingClientRect();
+    const nearestTarget = possibleTargets.reduce((prev, curr) => {
+      const prevRect = prev.getBoundingClientRect();
+      const currRect = curr.getBoundingClientRect();
 
-    const isVisible = isFullyVisibleOnYAxis(itemRect, containerRect);
+      const prevDistance = Math.abs(
+        prevRect.top - ref?.current.getBoundingClientRect().top
+      );
+      const currDistance = Math.abs(
+        currRect.top - ref?.current.getBoundingClientRect().top
+      );
+
+      return prevDistance < currDistance ? prev : curr;
+    });
+
+    if (!isHTMLElement(activeItem)) return;
+
+    const isVisible =
+      nearestTarget.getAttribute("data-index") ===
+      activeItem.getAttribute("data-index");
 
     if (!isVisible) {
-      ref.current.scrollTo({
-        top: item.offsetTop - ref?.current.offsetTop - containerRect.height / 2,
-        behavior: "smooth",
+      const container = ref?.current;
+      const containerRect = container.getBoundingClientRect();
+      const nearestTargetRect = nearestTarget.getBoundingClientRect();
+
+      container.scrollTo({
+        top:
+          nearestTarget.offsetTop -
+          container.offsetTop -
+          containerRect.height / 2 +
+          nearestTargetRect.height / 2,
+        behavior: "instant",
       });
     }
+  };
+
+  const setupInitialInfiniteScroll = () => {
+    const container = ref?.current;
+
+    if (!container) return;
+
+    [...carouselItems].reverse().forEach((item) => {
+      container.prepend(item.cloneNode(true));
+    });
+    carouselItems.forEach((item) => {
+      container.appendChild(item.cloneNode(true));
+    });
   };
 
   useEffect(() => {
@@ -149,7 +187,8 @@ export function VerticalCarousel({
   return (
     <div
       ref={ref}
-      class="h-44 space-y-4 p-4 py-5 carousel carousel-center carousel-vertical rounded-box"
+      // class="h-44 overflow-y-scroll rounded-box"
+      class="h-44 space-y-4 py-[50%] carousel carousel-center carousel-vertical rounded-box"
     >
       {children}
     </div>

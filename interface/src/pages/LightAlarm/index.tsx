@@ -8,6 +8,29 @@ export function LightAlarm() {
   const [loading, setLoading] = useState(false);
   const [alarms, setAlarms] = useState<Alarm[]>([]);
 
+  const handleAdd = () => {
+    setAlarms([
+      {
+        id: crypto.randomUUID(),
+        days: {
+          sunday: false,
+          monday: false,
+          tuesday: false,
+          wednesday: false,
+          thursday: false,
+          friday: false,
+          saturday: false,
+        },
+        enabled: true,
+        time: {
+          hour: new Date().getHours(),
+          minute: new Date().getMinutes(),
+        },
+      },
+      ...alarms,
+    ]);
+  };
+
   const handleRemove = (id: string) => {
     setAlarms(alarms.filter((alarm) => alarm.id !== id));
   };
@@ -44,14 +67,14 @@ export function LightAlarm() {
   });
 
   useEffect(() => {
-    console.log(alarms);
+    // console.log(alarms);
   }, [alarms]);
 
   return (
     <div class="container max-w-sm px-4 py-8 flex flex-col justify-center items-center">
       <div class="w-full px-6 flex justify-between items-center mb-8">
         <h1 class="text-2xl">Light Alarm</h1>
-        <button class="btn btn-square btn-ghost">
+        <button class="btn btn-square btn-ghost" onClick={handleAdd}>
           <Icon icon={plusIcon} />
         </button>
       </div>
