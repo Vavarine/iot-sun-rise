@@ -4,9 +4,10 @@ import { VerticalCarousel, VerticalCarouselItem } from "./VerticalCarousel";
 interface TimeSelectorProps {
   hour?: number;
   minute?: number;
+  onChange?: (hour: number, minute: number) => void;
 }
 
-export function TimeSelector({ hour, minute }: TimeSelectorProps) {
+export function TimeSelector({ hour, minute, onChange }: TimeSelectorProps) {
   const [selectedHour, setSelectedHour] = useState<number>(hour);
   const [selectedMinute, setSelectedMinute] = useState<number>(minute);
 
@@ -19,8 +20,7 @@ export function TimeSelector({ hour, minute }: TimeSelectorProps) {
   };
 
   useEffect(() => {
-    console.log("hour", selectedHour);
-    console.log("minute", selectedMinute);
+    onChange?.(selectedHour, selectedMinute);
   }, [selectedHour, selectedMinute]);
 
   return (

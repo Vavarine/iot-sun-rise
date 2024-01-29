@@ -1,76 +1,51 @@
-import { useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import plusIcon from "@assets/plus.svg?raw";
 import { Alarm } from "@/types";
 import { AlarmCard } from "@components/LightAlarm/AlarmCard";
 import Icon from "@/components/Icon";
 
 export function LightAlarm() {
-  const [alarms, setAlarms] = useState<Alarm[]>([
-    {
-      time: {
-        hour: 7,
-        minute: 30,
-      },
-      days: {
-        sunday: false,
-        monday: true,
-        tuesday: true,
-        wednesday: true,
-        thursday: true,
-        friday: true,
-        saturday: false,
-      },
-      enabled: true,
-    },
-    {
-      time: {
-        hour: 8,
-        minute: 30,
-      },
-      days: {
-        sunday: false,
-        monday: true,
-        tuesday: true,
-        wednesday: false,
-        thursday: true,
-        friday: true,
-        saturday: false,
-      },
-      enabled: false,
-    },
-    {
-      time: {
-        hour: 7,
-        minute: 30,
-      },
-      days: {
-        sunday: false,
-        monday: true,
-        tuesday: true,
-        wednesday: true,
-        thursday: true,
-        friday: true,
-        saturday: false,
-      },
-      enabled: false,
-    },
-    {
-      time: {
-        hour: 7,
-        minute: 30,
-      },
-      days: {
-        sunday: false,
-        monday: true,
-        tuesday: true,
-        wednesday: true,
-        thursday: true,
-        friday: true,
-        saturday: false,
-      },
-      enabled: true,
-    },
-  ]);
+  const [loading, setLoading] = useState(false);
+  const [alarms, setAlarms] = useState<Alarm[]>([]);
+
+  const handleRemove = (id: string) => {
+    setAlarms(alarms.filter((alarm) => alarm.id !== id));
+  };
+
+  const handleEdit = (alarm: Alarm) => {
+    setAlarms(alarms.map((a) => (a.id === alarm.id ? alarm : a)));
+  };
+
+  const fetchAlarms = async () => {
+    setLoading(true);
+    const response = await fetch("https://sunrise.evailson.dev/api/alarms");
+    const data = await response.json();
+
+    setAlarms(data.alarms);
+    setLoading(false);
+  };
+
+  const saveAlarms = async () => {
+    setLoading(true);
+    try {
+      await fetch("https://sunrise.evailson.dev/api/alarms", {
+        method: "POST",
+        body: JSON.stringify({ alarms }),
+      });
+
+      fetchAlarms();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useState(() => {
+    fetchAlarms();
+  });
+
+  useEffect(() => {
+    console.log(alarms);
+  }, [alarms]);
 
   return (
     <div class="container max-w-sm px-4 py-8 flex flex-col justify-center items-center">
@@ -80,15 +55,33 @@ export function LightAlarm() {
           <Icon icon={plusIcon} />
         </button>
       </div>
-
-      <div class="w-full">
-        {alarms.map((alarm) => {
-          return <AlarmCard {...alarm} />;
-        })}
-      </div>
-      <div class="mt-8 px-6 w-full flex flex-col gap-4">
-        <button class="btn w-full btn-primary btn-outline px-8">Save</button>
-      </div>
+      {loading ? (
+        <div class="flex justify-center">
+          <span class="loading loading-spinner loading-md" />
+        </div>
+      ) : (
+        <>
+          <div class="w-full">
+            {alarms.map((alarm) => {
+              return (
+                <AlarmCard
+                  {...alarm}
+                  onRemove={() => handleRemove(alarm.id)}
+                  onEdit={handleEdit}
+                />
+              );
+            })}
+          </div>
+          <div class="mt-8 px-6 w-full flex flex-col gap-4">
+            <button
+              class="btn w-full btn-primary btn-outline px-8"
+              onClick={saveAlarms}
+            >
+              Save
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

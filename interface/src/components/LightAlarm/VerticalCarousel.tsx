@@ -27,6 +27,20 @@ function throttle(callbackFn, limit) {
   };
 }
 
+export function VerticalCarouselItem({
+  children,
+  index,
+}: PropsWithChildren<{ index: number }>) {
+  return (
+    <div
+      class="carousel-item opacity-20 data-[visible=true]:opacity-100 transition-opacity"
+      data-index={index}
+    >
+      <div class="flex justify-center items-center h-full">{children}</div>
+    </div>
+  );
+}
+
 export function VerticalCarousel({
   children,
   defaultIndex: activeIndex,
@@ -34,21 +48,36 @@ export function VerticalCarousel({
 }: VerticalSliderProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [carouselItems, setCarouselItems] = useState<Element[]>([]);
+  const visibleItems = useRef<Element[]>([]);
+
+  let timer = null;
+
+  const onScrollEnd = () => {
+    const container = ref?.current;
+    const activeItem = container.querySelector(
+      ".carousel-item[data-visible=true]"
+    );
+    const activeIndex = parseInt(activeItem.getAttribute("data-index"));
+
+    console.log("scroll end");
+    onChange?.(activeIndex);
+  };
 
   const onScroll = () => {
+    clearTimeout(timer);
+
     const container = ref?.current;
 
     if (!container) return;
 
-    const containerRect = ref?.current.getBoundingClientRect();
-    const currentItems = ref?.current.querySelectorAll(".carousel-item");
+    const containerRect = container.getBoundingClientRect();
+    const currentItems = container.querySelectorAll(".carousel-item");
 
     currentItems.forEach((item) => {
       const rect = item.getBoundingClientRect();
       const isVisible = isFullyVisibleOnYAxis(rect, containerRect);
 
       item.setAttribute("data-visible", isVisible.toString());
-      if (isVisible) onChange(Number(item.getAttribute("data-index")));
     });
 
     const currentItemHeight = currentItems[0].getBoundingClientRect().height;
@@ -67,6 +96,8 @@ export function VerticalCarousel({
         container.prepend(item.cloneNode(true));
       });
     }
+
+    timer = setTimeout(onScrollEnd, 500);
   };
 
   const scrollTo = (index: number) => {
@@ -121,20 +152,6 @@ export function VerticalCarousel({
       class="h-44 space-y-4 p-4 py-5 carousel carousel-center carousel-vertical rounded-box"
     >
       {children}
-    </div>
-  );
-}
-
-export function VerticalCarouselItem({
-  children,
-  index,
-}: PropsWithChildren<{ index: number }>) {
-  return (
-    <div
-      class="carousel-item opacity-20 data-[visible=true]:opacity-100 transition-opacity"
-      data-index={index}
-    >
-      <div class="flex justify-center items-center h-full">{children}</div>
     </div>
   );
 }

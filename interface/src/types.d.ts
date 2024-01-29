@@ -1,4 +1,5 @@
 export type Alarm = {
+  id: string;
   time: {
     hour: number;
     minute: number;

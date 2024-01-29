@@ -1,11 +1,23 @@
-import { useId } from "preact/hooks";
-import { EditAlarmModal } from "./EditAlarmModal";
 import { Alarm } from "@/types";
+import { EditAlarmModal } from "./EditAlarmModal";
 
-interface AlarmProps extends Alarm {}
+interface AlarmProps extends Alarm {
+  onRemove: () => void;
+  onEdit: (alarm: Alarm) => void;
+}
 
-export function AlarmCard({ time, days, enabled }: AlarmProps) {
-  const id = useId();
+export function AlarmCard({
+  id,
+  time,
+  days,
+  enabled,
+  onRemove,
+  onEdit,
+}: AlarmProps) {
+  const handleEnableChange = (e: Event) => {
+    e.stopPropagation();
+    onEdit({ id, time, days, enabled: !enabled });
+  };
 
   return (
     <div
@@ -36,17 +48,18 @@ export function AlarmCard({ time, days, enabled }: AlarmProps) {
           })}
         </div>
       </div>
-      <td>
-        <input
-          type="checkbox"
-          checked={enabled}
-          class="checkbox checkbox-primary"
-          onClick={(e) => e.stopPropagation()}
-        />
-      </td>
+      <input
+        type="checkbox"
+        checked={enabled}
+        class="checkbox checkbox-primary"
+        onClick={handleEnableChange}
+      />
       <EditAlarmModal
         modalId={id}
+        onRemove={onRemove}
+        onEdit={onEdit}
         alarm={{
+          id,
           days,
           enabled,
           time,
