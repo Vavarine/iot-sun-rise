@@ -50,6 +50,7 @@ void connectToWifi(const char *ssid, const char *password) {
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
   Serial.print(WiFi.localIP());
+  Serial.println("");
 }
 
 void handleIrSend() {
@@ -88,14 +89,11 @@ void handleSaveAlarms() {
     return;
   }
 
-  serializeJson(doc, Serial);
-  Serial.println();
-
   Serial.println("Saving alarms to file");
 
   jsonFilesManager.save("/alarms.json", doc.as<String>());
 
-  webServer.send(200, "text/json", "{success: true}");
+  webServer.send(200, "text/json", "{\"success\": true}");
 }
 
 void handleLoadAlarms() {
