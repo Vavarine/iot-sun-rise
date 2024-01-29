@@ -8,6 +8,7 @@ WebServer::WebServer(int port) : server(port) {}
 
 void WebServer::begin() {
   server.begin();
+  server.enableCORS(true);
 
   if(!LittleFS.begin()) {
     Serial.println("An Error has occurred while mounting LittleFS");
