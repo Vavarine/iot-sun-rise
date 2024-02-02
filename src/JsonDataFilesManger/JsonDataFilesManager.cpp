@@ -19,6 +19,11 @@ void JsonDataFilesManager::save(const String &filename, const String &content) {
 
 String JsonDataFilesManager::load(const String &filename) {
   const String path = baseDirectory + "/" + filename;
+
+  if(!LittleFS.exists(path)) {
+    return "";
+  }
+
   File file = LittleFS.open(path, "r");
   String content = file.readString();
   file.close();
