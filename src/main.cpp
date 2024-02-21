@@ -2,7 +2,6 @@
 #include <ESP8266WiFi.h>
 #include "LittleFS.h"
 #include <assert.h>
-#include <IRrecv.h>
 #include <IRremoteESP8266.h>
 #include <IRac.h>
 #include <ArduinoJson.h>
@@ -12,21 +11,13 @@
 #include "JsonDataFilesManger/JsonDataFilesManager.h"
 #include "utils/utils.h"
 #include "constants.h"
-// #include <IRtext.h>
-// #include <IRutils.h>
 
 const uint16_t kIrLed = 4 ;  // ESP8266 GPIO pin to use. Recommended: 4 (D2). 
 const uint16_t kRecvPin = 5;
 
 const uint32_t kBaudRate = 9600;
-const uint16_t kCaptureBufferSize = 1024;
-const uint8_t kTimeout = 15;
-const uint16_t kMinUnknownSize = 12;
-const uint8_t kTolerancePercentage = kTolerance;
 
-IRrecv irrecv(kRecvPin, kCaptureBufferSize, kTimeout, true);
 IRsend irsend(kIrLed); 
-decode_results results;  // Somewhere to store the results
 
 WebServer webServer;
 JsonDataFilesManager jsonFilesManager("/json-data-files");
@@ -104,28 +95,6 @@ void handleLoadAlarms() {
   webServer.send(200, "text/json", alarms);
 }
 
-void setupIrReceiver() {
-  irrecv.setUnknownThreshold(kMinUnknownSize);
-  irrecv.setTolerance(kTolerancePercentage);  // Override the default tolerance.
-  irrecv.enableIRIn();  // Start the receiver
-}
-
-void irReceive() {
- // Check if the IR code has been received.
-  if (irrecv.decode(&results)) {
-    // Display the library version the message was captured with.
-    Serial.println(D_STR_LIBRARY "   : v" _IRREMOTEESP8266_VERSION_STR "\n");
-   
-    Serial.print(resultToHumanReadableBasic(&results));
-    yield();  // Feed the WDT as the text output can take a while to print.
-
-    // Output the results as source code
-    Serial.println(resultToSourceCode(&results));
-    Serial.println();    // Blank line between entries
-    yield();             // Feed the WDT (again)
-  }
-}
-
 void setup() {
   Serial.begin(kBaudRate, SERIAL_8N1, SERIAL_TX_ONLY);
 
@@ -134,10 +103,6 @@ void setup() {
   }
   
   assert(irutils::lowLevelSanityCheck() == 0);
-
-  Serial.printf("\n" D_STR_IRRECVDUMP_STARTUP "\n", kRecvPin);
-  
-  // setupIrReceiver();
 
   irsend.begin();
 
@@ -157,5 +122,4 @@ void setup() {
 
 void loop() {
   webServer.handleClient();
-  // irReceive();
 }
