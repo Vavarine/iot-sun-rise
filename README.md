@@ -1,5 +1,21 @@
 # IOT Sun Rise
 
+## Todo - In Progress 🚧
+- [x] Ir remote control
+  - [x] Web App remote control interface
+  - [x] Web server remote control api routes
+- [ ] Add a "sunrise" feature to the lamp
+  - [x] Web App sunrise interface (interface to create, edit and delete alarms)
+  - [x] Web server sunrise api routes
+    - [x] Save alarms to SPIFFS
+    - [x] Read alarms
+  - [ ] Schedule alarms
+    - [ ] Get saved alarms and 
+  - [x] Fade in light
+- [ ] Refactoring
+  - [ ] Web server IrSend and IrReceive to a class
+  - [ ] "Sunrise" feature to a class
+
 ## Description
 
 This project is a simple IOT project that uses a ESP8266 to control a bed side lamp. The RGB lamp originally uses a infrared remote control, which is replaced by the ESP8266. I am planning to add a "sunrise" feature to the lamp so that it can be used as a wake up light.
