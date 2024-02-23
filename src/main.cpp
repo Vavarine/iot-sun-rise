@@ -5,22 +5,23 @@
 #include <IRremoteESP8266.h>
 #include <IRac.h>
 #include <ArduinoJson.h>
+#include <TimeLib.h>
+#include <TimeAlarms.h>
 
 #include "secrets.h"
 #include "WebServer/WebServer.h"
-#include "JsonDataFilesManger/JsonDataFilesManager.h"
+#include "DataFilesManager/DataFilesManager.h"
 #include "utils/utils.h"
 #include "constants.h"
 
 const uint16_t kIrLed = 4 ;  // ESP8266 GPIO pin to use. Recommended: 4 (D2). 
-const uint16_t kRecvPin = 5;
 
 const uint32_t kBaudRate = 9600;
 
 IRsend irsend(kIrLed); 
 
 WebServer webServer;
-JsonDataFilesManager jsonFilesManager("/json-data-files");
+DataFilesManager dataFilesManager("/json-data-files");
 JsonDocument doc;
 
 void connectToWifi(const char *ssid, const char *password) {
@@ -72,6 +73,10 @@ void handleRoot() {
   webServer.send(200, "text/json", "{message: 'hello from esp8266!', success}");
 }
 
+void setupAlarms() {
+  String alarms = dataFilesManager.load("alarms");
+}
+
 void handleSaveAlarms() {
   deserializeJson(doc, webServer.arg("plain"));
 
@@ -82,7 +87,7 @@ void handleSaveAlarms() {
 
   Serial.println("Saving alarms to file");
 
-  jsonFilesManager.save("/alarms.json", doc.as<String>());
+  dataFilesManager.save("alarms", doc.as<String>());
 
   webServer.send(200, "text/json", "{\"success\": true}");
 }
@@ -90,9 +95,21 @@ void handleSaveAlarms() {
 void handleLoadAlarms() {
   Serial.println("Loading alarms from file");
 
-  String alarms = jsonFilesManager.load("/alarms.json");
+  String alarms = dataFilesManager.load("alarms");
+
+  Serial.println("alarms" + alarms);
 
   webServer.send(200, "text/json", alarms);
+}
+
+void repeats() {
+  Serial.println("Repeats");
+  irsend.sendNEC(0xFFD827);
+}
+
+void repeats2() {
+  Serial.println("Repeats2");
+  irsend.sendNEC(0xFFD827);
 }
 
 void setup() {
@@ -110,9 +127,14 @@ void setup() {
 
   blink(2, 100, DEBUG_LED);
 
+  setTime(8,29,0,1,1,11);
+
+  // Alarm.timerRepeat(2, repeats);
+  // Alarm.timerRepeat(5, repeats2); 
+
   connectToWifi(SECRET_SSID, SECRET_PASSWORD);
   webServer.begin();
-  jsonFilesManager.begin();
+  dataFilesManager.begin();
 
   webServer.on("/api", HTTP_GET, handleRoot);
   webServer.on("/api/ir-send", HTTP_POST, handleIrSend);
@@ -122,4 +144,5 @@ void setup() {
 
 void loop() {
   webServer.handleClient();
+  Alarm.delay(1);
 }

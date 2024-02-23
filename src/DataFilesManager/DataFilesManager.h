@@ -1,11 +1,11 @@
-#ifndef JSON_DATA_FILES_MANAGER_H
-#define JSON_DATA_FILES_MANAGER_H
+#ifndef DATA_FILES_MANAGER_H
+#define DATA_FILES_MANAGER_H
 
 #include <Arduino.h>
 
-class JsonDataFilesManager { 
+class DataFilesManager { 
 public:
-  JsonDataFilesManager(const String &basedir);
+  DataFilesManager(const String &basedir);
 
   void begin();
   void save(const String &filename, const String &content);
