@@ -82,6 +82,9 @@ void handleRoot() {
 void alarmCallback() {
   // Turn on
   irsend.sendNEC(0xFFE01F);
+  // Set color to white
+  irsend.sendNEC(0xFFC03F);
+
 
   // reduce brightness
   for(int i = 0; i < 10; i++) {
@@ -205,10 +208,12 @@ void setup() {
 
   blink(2, 100, DEBUG_LED);
 
+  connectToWifi(SECRET_SSID, SECRET_PASSWORD);
+
   // Setup NTP
   timeClient.begin();
   timeClient.update();
-  // timeClient.setTimeOffset(-10800); // GMT-3
+  timeClient.setTimeOffset(-10800); // GMT-3
 
   String formattedTime = timeClient.getFormattedTime();
   Serial.print("Formatted Time: ");
@@ -232,7 +237,6 @@ void setup() {
   // setTime(8,29,0,1,1,11);
   setTime(currentHour, currentMinute, currentSecond, monthDay, currentMonth, currentYear);
 
-  connectToWifi(SECRET_SSID, SECRET_PASSWORD);
   dataFilesManager.begin();
   webServer.begin();
   setupAlarms();
