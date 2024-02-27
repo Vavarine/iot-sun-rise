@@ -20,6 +20,7 @@ void WebServer::begin() {
   });
 
   Serial.println("HTTP server started");
+  Serial.println(" ");
 }
 
 void WebServer::handleClient() {
