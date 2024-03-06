@@ -9,6 +9,8 @@
 #include <ArduinoJson.h>
 #include <TimeLib.h>
 #include <TimeAlarms.h>
+#include <Adafruit_ST7789.h>
+#include <Adafruit_ST7735.h>
 
 #include "secrets.h"
 #include "WebServer/WebServer.h"
@@ -16,7 +18,25 @@
 #include "utils/utils.h"
 #include "constants.h"
 
-const uint16_t kIrLed = 4 ;  // ESP8266 GPIO pin to use. Recommended: 4 (D2). 
+#define D1 5
+#define D2 4
+#define D3 0
+#define D4 2
+#define D5 14
+#define D6 12
+#define D7 13
+#define D8 15
+
+#define TFT_CS D8
+#define TFT_RST D2
+#define TFT_DC D3
+
+#define TFT_LED D1 // D1
+
+Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
+
+
+const uint16_t kIrLed = 16;  // ESP8266 GPIO pin to use. Recommended: 4 (D2). 
 
 const uint32_t kBaudRate = 9600;
 
@@ -35,6 +55,9 @@ void connectToWifi(const char *ssid, const char *password) {
   Serial.print("Connecting to ");
   Serial.println(ssid);
 
+  analogWriteRange(1023);
+  analogWrite(TFT_LED, 400); // Brilho do led
+
   WiFi.begin(ssid, password);
 
   while (WiFi.status() != WL_CONNECTED)
@@ -49,6 +72,24 @@ void connectToWifi(const char *ssid, const char *password) {
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
   Serial.println(" ");
+}
+
+void setupTft() {
+  pinMode(TFT_LED, OUTPUT);
+  analogWriteRange(1023);
+  analogWrite(TFT_LED, 1000); // Brilho do led
+
+  tft.init(240, 320);
+  tft.invertDisplay(false);
+  tft.setTextWrap(false);
+  tft.setRotation(1);
+  tft.fillScreen(ST7735_BLACK);  // fill screen with black color
+  tft.setTextColor(ST7735_WHITE, ST7735_BLACK);  // set text color to white and black background
+  tft.setTextSize(3);
+  tft.drawFastHLine(0, 44, tft.width(), ST7735_BLUE);
+
+  tft.setCursor(20, 20); // X, Y
+  tft.write("Hello world xd");
 }
 
 void handleIrSend() {
@@ -207,6 +248,8 @@ void setup() {
   pinMode(DEBUG_LED, OUTPUT);
 
   blink(2, 100, DEBUG_LED);
+
+  setupTft();
 
   connectToWifi(SECRET_SSID, SECRET_PASSWORD);
 
