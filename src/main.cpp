@@ -15,6 +15,7 @@
 #include "secrets.h"
 #include "WebServer/WebServer.h"
 #include "DataFilesManager/DataFilesManager.h"
+#include "AlarmsManager/AlarmsManager.h"
 #include "utils/utils.h"
 #include "constants.h"
 
@@ -142,6 +143,8 @@ void alarmCallback() {
   Serial.println("Alarm callback");
 }
 
+AlarmsManager alarmsManager(dataFilesManager, alarmCallback);
+
 void setupAlarms() {
   Serial.println("Setting up alarms");
 
@@ -210,22 +213,11 @@ void setupAlarms() {
 }
 
 void handleSaveAlarms() {
-  DeserializationError error = deserializeJson(doc, webServer.arg("plain"));
-
-  if(error) {
-    Serial.println("Error deserializing alarms");
-    Serial.println(error.c_str());
-
-    webServer.send(400, "text/json", "{\"error\": \"invalid json\"}");
-
-    return;
+  if(alarmsManager.saveAlarms(webServer.arg("plain"))) {
+    webServer.send(200, "text/json", "{\"success\": true}");
+  } else {
+    webServer.send(500, "text/json", "{\"success\": false}");
   }
-
-  Serial.println("Saving alarms to file");
-  dataFilesManager.save("alarms", doc.as<String>());
-  setupAlarms();
-
-  webServer.send(200, "text/json", "{\"success\": true}");
 }
 
 void handleLoadAlarms() {
@@ -276,13 +268,16 @@ void setup() {
   String currentDate = String(currentYear) + "-" + String(currentMonth) + "-" + String(monthDay);
   Serial.print("Current date: ");
   Serial.println(currentDate);
-  
+
+  // alarmsManager.callbackFunction();
   // setTime(8,29,0,1,1,11);
-  setTime(currentHour, currentMinute, currentSecond, monthDay, currentMonth, currentYear);
+  // setTime(currentHour, currentMinute, currentSecond, monthDay, currentMonth, currentYear);
+
 
   dataFilesManager.begin();
+  alarmsManager.begin(currentHour, currentMinute, currentSecond, monthDay, currentMonth, currentYear);
   webServer.begin();
-  setupAlarms();
+  // setupAlarms();
   // alarmCallback();
 
   webServer.on("/api", HTTP_GET, handleRoot);
@@ -293,5 +288,5 @@ void setup() {
 
 void loop() {
   webServer.handleClient();
-  Alarm.delay(1);
+  alarmsManager.update();
 }

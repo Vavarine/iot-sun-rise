@@ -12,6 +12,9 @@ void DataFilesManager::begin() {
 
 void DataFilesManager::save(const String &filename, const String &content) {
   const String path = baseDirectory + "/" + filename;
+
+  Serial.println("Saving file: " + path);
+
   File file = LittleFS.open(path, "w");
   file.print(content);
   file.close();
@@ -19,6 +22,8 @@ void DataFilesManager::save(const String &filename, const String &content) {
 
 String DataFilesManager::load(const String &filename) {
   const String path = baseDirectory + "/" + filename;
+
+  Serial.println("Loading file: " + path);
 
   if(!LittleFS.exists(path)) {
     return "{}";
