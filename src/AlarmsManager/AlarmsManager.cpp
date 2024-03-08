@@ -1,15 +1,42 @@
+#include <TimeAlarms.h>
+#include <NTPClient.h>
+#include <WiFiUdp.h>
+
 #include "AlarmsManager.h"
 #include <ArduinoJson.h>
-#include <TimeAlarms.h>
 
 JsonDocument alarmsDoc;
-
-AlarmsManager::AlarmsManager(DataFilesManager &dataFilesManager, void (*callback)()) :
-    dataFilesManager(dataFilesManager), callbackFunction(callback) {}
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, "pool.ntp.org");
     
-void AlarmsManager::begin(int currentHour, int currentMinute, int currentSecond, int currentDay, int currentMonth, int currentYear) {
+void AlarmsManager::begin() {
   dataFilesManager.begin();
-  setTime(currentHour, currentMinute, currentSecond, currentDay, currentMonth, currentYear);
+
+  // Setup NTP
+  timeClient.begin();
+  timeClient.update();
+  timeClient.setTimeOffset(-10800); // GMT-3
+
+  String formattedTime = timeClient.getFormattedTime();
+  Serial.print("Formatted Time: ");
+  Serial.println(formattedTime);  
+
+  // Set time
+  time_t epochTime = timeClient.getEpochTime();
+  int currentHour = timeClient.getHours();
+  int currentMinute = timeClient.getMinutes();
+  int currentSecond = timeClient.getSeconds();
+  //Get a time structure
+  struct tm *ptm = gmtime ((time_t *)&epochTime); 
+  int monthDay = ptm->tm_mday;
+  int currentMonth = ptm->tm_mon+1;
+  int currentYear = ptm->tm_year+1900;
+
+  String currentDate = String(currentYear) + "-" + String(currentMonth) + "-" + String(monthDay);
+  Serial.print("Current date: ");
+  Serial.println(currentDate);
+
+  setTime(currentHour, currentMinute, currentSecond, monthDay, currentMonth, currentYear);
   setupAlarms();
 }
 

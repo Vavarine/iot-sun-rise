@@ -7,8 +7,8 @@
 
 class AlarmsManager {
 public:
-  AlarmsManager(DataFilesManager &dataFilesManager, void (*callback)() = 0) : dataFilesManager(dataFilesManager) {}
-  void begin(int currentHour, int currentMinute, int currentSecond, int currentDay, int currentMonth, int currentYear);
+  AlarmsManager(DataFilesManager &dataFilesManager, void (*callback)() = 0) : dataFilesManager(dataFilesManager), callbackFunction(callback) {}
+  void begin();
   void update();
   bool saveAlarms(const String &alarm);
   String loadAlarms();
