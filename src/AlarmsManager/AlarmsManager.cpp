@@ -8,12 +8,37 @@
 JsonDocument alarmsDoc;
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org");
+
+// months
+const char *months[] = {"janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"};
+// days
+const char *days[] = {"Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"};
     
 void AlarmsManager::begin() {
   dataFilesManager.begin();
-
-  // Setup NTP
   timeClient.begin();
+  
+  setupTime();
+  setupAlarms();
+}
+
+void AlarmsManager::setTimeCallback(void (*callback)()) {
+  Alarm.timerRepeat(1, callback);
+}
+
+int AlarmsManager::getHour() {
+  return timeClient.getHours();
+}
+
+int AlarmsManager::getMinute() {
+  return timeClient.getMinutes();
+}
+
+int AlarmsManager::getSecond() {
+  return timeClient.getSeconds();
+}
+
+void AlarmsManager::setupTime() {
   timeClient.update();
   timeClient.setTimeOffset(-10800); // GMT-3
 
@@ -37,7 +62,23 @@ void AlarmsManager::begin() {
   Serial.println(currentDate);
 
   setTime(currentHour, currentMinute, currentSecond, monthDay, currentMonth, currentYear);
-  setupAlarms();
+}
+
+String AlarmsManager::getFormattedTime() {
+  return timeClient.getFormattedTime();
+}
+
+String AlarmsManager::getFormattedDate() {
+  timeClient.update();
+  time_t epochTime = timeClient.getEpochTime();
+  //Get a time structure
+  struct tm *ptm = gmtime ((time_t *)&epochTime); 
+  int monthDay = ptm->tm_mday;
+  int currentMonth = ptm->tm_mon+1;
+  int currentYear = ptm->tm_year+1900;
+  int currentDay = ptm->tm_wday;
+
+  return String(days[currentDay]) + ", " + String(monthDay) + " de " + String(months[currentMonth-1]) + " de " + String(currentYear);
 }
 
 void AlarmsManager::setupAlarms() {

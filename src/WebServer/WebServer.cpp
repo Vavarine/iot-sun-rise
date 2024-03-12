@@ -47,7 +47,7 @@ void WebServer::handleNotFound() {
 }
 
 bool WebServer::handleFileRead(String path) {
-  blink(1, 100, DEBUG_LED);
+  // blink(1, 100, DEBUG_LED);
 
   if (path.endsWith("/")) {
     path += "index.html";

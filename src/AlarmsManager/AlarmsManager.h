@@ -10,13 +10,20 @@ public:
   AlarmsManager(DataFilesManager &dataFilesManager, void (*callback)() = 0) : dataFilesManager(dataFilesManager), callbackFunction(callback) {}
   void begin();
   void update();
+  void setTimeCallback(void (*callback)());
   bool saveAlarms(const String &alarm);
+  String getFormattedTime();
   String loadAlarms();
+  int getHour();
+  int getMinute();
+  int getSecond();
+  String getFormattedDate();
 
 private:
   DataFilesManager dataFilesManager;
   void (*callbackFunction)();
   void setupAlarms();
+  void setupTime();
 };
 
 #endif

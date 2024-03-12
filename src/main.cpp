@@ -9,6 +9,7 @@
 #include <TimeAlarms.h>
 #include <Adafruit_ST7789.h>
 #include <Adafruit_ST7735.h>
+#include "fonts/whitrabt55pt7b.h"
 
 #include "secrets.h"
 #include "WebServer/WebServer.h"
@@ -61,21 +62,6 @@ void connectToWifi(const char *ssid, const char *password) {
   Serial.println(" ");
 }
 
-void setupTft() {
-  analogWrite(TFT_LED, 100); // Brilho do led
-
-  tft.init(240, 320);
-  tft.invertDisplay(false);
-  tft.setTextWrap(false);
-  tft.setRotation(1);
-  tft.fillScreen(ST7735_BLACK);  // fill screen with black color
-  tft.setTextColor(ST7735_WHITE, ST7735_BLACK);  // set text color to white and black background
-  tft.setTextSize(3);
-
-  tft.setCursor(20, 20); // X, Y
-  tft.write("Hello world xd");
-}
-
 void handleIrSend() {
   deserializeJson(doc, webServer.arg("plain"));
 
@@ -88,9 +74,6 @@ void handleIrSend() {
   Serial.println();
 
   uint32_t code = doc["code"].as<uint32_t>();
-
-  Serial.print("Sending code: ");
-  Serial.println(code);
 
   irsend.sendNEC(code);
 
@@ -127,6 +110,33 @@ void alarmCallback() {
 
 AlarmsManager alarmsManager(dataFilesManager, alarmCallback);
 
+int currentMinute = 0;
+int currentHour = 0;
+
+void printTime() {
+  if(alarmsManager.getMinute() == currentMinute) {
+    return;
+  }
+
+  currentMinute = alarmsManager.getMinute();
+  currentHour = alarmsManager.getHour();
+
+  tft.fillScreen(ST7735_BLACK);  // fill screen with black color
+  tft.setTextColor(ST7735_WHITE, ST7735_BLACK);  // set text color to white and black background
+
+  tft.setCursor(5, 80); // X, Y
+  tft.print(currentHour < 10 ? "0" : "");
+  tft.print(currentHour);
+  tft.print("h");
+  tft.print(currentMinute < 10 ? "0" : "");
+  tft.print(currentMinute);
+  // tft.print("00h00");
+
+  // tft.setTextSize(2);
+  // tft.setCursor(10, 100);
+  // tft.print(alarmsManager.getFormattedDate());
+}
+
 void handleSaveAlarms() {
   if(alarmsManager.saveAlarms(webServer.arg("plain"))) {
     webServer.send(200, "text/json", "{\"success\": true}");
@@ -154,11 +164,22 @@ void setup() {
 
   irsend.begin();
 
-  setupTft();
   connectToWifi(SECRET_SSID, SECRET_PASSWORD);
 
   dataFilesManager.begin();
   alarmsManager.begin();
+
+  analogWrite(TFT_LED, 100); // Brilho do led
+
+  tft.init(240, 320);
+  tft.invertDisplay(false);
+  tft.setTextWrap(false);
+  tft.setRotation(1);
+  tft.setFont(&whitrabt55pt7b);
+
+  printTime();
+  alarmsManager.setTimeCallback(printTime);
+
   webServer.begin();
 
   webServer.on("/api", HTTP_GET, handleRoot);
@@ -168,6 +189,6 @@ void setup() {
 }
 
 void loop() {
-  webServer.handleClient();
   alarmsManager.update();
+  webServer.handleClient();
 }

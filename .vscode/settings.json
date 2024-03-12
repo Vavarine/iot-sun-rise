@@ -1,3 +1,10 @@
 {
-    "editor.formatOnSave": false
+    "editor.formatOnSave": false,
+    "files.associations": {
+        "*.tcc": "cpp",
+        "istream": "cpp",
+        "ostream": "cpp",
+        "sstream": "cpp",
+        "regex": "cpp"
+    }
 }
