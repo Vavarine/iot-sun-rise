@@ -41,6 +41,30 @@ WebServer webServer;
 DataFilesManager dataFilesManager("/json-data-files");
 JsonDocument doc;
 
+int TFT_LED_BRIGHTNESS;
+
+
+void changeTftBrightness(int brightness) {
+  dataFilesManager.save("tft-brightness", String(brightness));
+  TFT_LED_BRIGHTNESS = brightness;
+  analogWrite(TFT_LED, brightness);
+}
+
+void setupTftBrightness() {
+  pinMode(TFT_LED, OUTPUT);
+
+  String brightness = dataFilesManager.load("tft-brightness");
+
+  if(brightness.length() > 0) {
+    TFT_LED_BRIGHTNESS = brightness.toInt();
+  } else {
+    TFT_LED_BRIGHTNESS = 400;
+  }
+
+  Serial.println("TFT_LED_BRIGHTNESS: " + String(TFT_LED_BRIGHTNESS));
+
+  changeTftBrightness(TFT_LED_BRIGHTNESS);
+}
 void connectToWifi(const char *ssid, const char *password) {
   Serial.println("");
   Serial.print("Connecting to ");
@@ -92,7 +116,8 @@ void alarmCallback() {
   // Set color to white
   irsend.sendNEC(0xFFC03F);
 
-
+  changeTftBrightness(400);
+  
   // reduce brightness
   for(int i = 0; i < 10; i++) {
     irsend.sendNEC(0xFF40BF);
@@ -112,6 +137,17 @@ AlarmsManager alarmsManager(dataFilesManager, alarmCallback);
 
 int currentMinute = 0;
 int currentHour = 0;
+
+void setupTft() {
+  analogWrite(TFT_LED, 400);
+  tft.init(240, 320);
+  tft.invertDisplay(false);
+  tft.setTextWrap(false);
+  tft.setRotation(1);
+  tft.setFont(&whitrabt55pt7b);
+
+  setupTftBrightness();
+}
 
 void printTime() {
   if(alarmsManager.getMinute() == currentMinute) {
@@ -158,27 +194,25 @@ void setup() {
   assert(irutils::lowLevelSanityCheck() == 0);
 
   pinMode(DEBUG_LED, OUTPUT);
-  pinMode(TFT_LED, OUTPUT);
-
   blink(1, 100, DEBUG_LED);
 
   irsend.begin();
 
   connectToWifi(SECRET_SSID, SECRET_PASSWORD);
 
+  setupTft();
+
   dataFilesManager.begin();
   alarmsManager.begin();
 
-  analogWrite(TFT_LED, 100); // Brilho do led
-
-  tft.init(240, 320);
-  tft.invertDisplay(false);
-  tft.setTextWrap(false);
-  tft.setRotation(1);
-  tft.setFont(&whitrabt55pt7b);
-
   printTime();
-  alarmsManager.setTimeCallback(printTime);
+
+  Alarm.timerRepeat(1, printTime);
+
+  // dims the screen at 10pm
+  Alarm.alarmRepeat(22, 0, 0, []() {
+    changeTftBrightness(5);
+  });
 
   webServer.begin();
 

@@ -26,7 +26,7 @@ String DataFilesManager::load(const String &filename) {
   Serial.println("Loading file: " + path);
 
   if(!LittleFS.exists(path)) {
-    return "{}";
+    return "";
   }
 
   File file = LittleFS.open(path, "r");
