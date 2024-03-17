@@ -5,6 +5,7 @@
 
 // #define SECRET_SSID "your_ssid"
 // #define SECRET_PASSWORD "your_password"
-// #define SECRET_API_KEY "your_secret_api_key"
+// #define SECRET_ACCUWEATHER_API_KEY
+// #define SECRET_ACCUWEATHER_LOCATION_KEY
 
 // #endif

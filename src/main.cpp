@@ -9,16 +9,20 @@
 #include <TimeAlarms.h>
 #include <Adafruit_ST7789.h>
 #include <Adafruit_ST7735.h>
-#include "fonts/whitrabt55pt7b.h"
 #include <NTPClient.h>
 #include <WiFiUdp.h>
+#include <ESP8266HTTPClient.h>
+#include <WiFiClient.h>
 
+#include "constants.h"
 #include "secrets.h"
 #include "WebServer/WebServer.h"
 #include "DataFilesManager/DataFilesManager.h"
 #include "AlarmsManager/AlarmsManager.h"
 #include "utils/utils.h"
-#include "constants.h"
+#include "fonts/whitrabt55pt7b.h"
+#include "fonts/whitrabt40pt7b.h"
+#include "fonts/whitrabt11pt7b.h"
 
 #define D1 5
 #define D2 4
@@ -47,16 +51,35 @@ JsonDocument doc;
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org");
 
+WiFiClient client;
+HTTPClient http;
+
 int TFT_LED_BRIGHTNESS;
 
+int currentMinute = 0;
+int currentHour = 0;
 
-void changeTftBrightness(int brightness) {
+int currentTemperature = 0;
+int forecastMaxTemperature = 0;
+
+int forecastMinTemperature = 0;
+String currentWeatherText = "";
+
+String date = "";
+
+// months
+const char *months[] = {"janeiro", "fevereiro", "marco", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"};
+// days
+const char *days[] = {"Domingo", "Segunda", "Terca", "Quarta", "Quinta", "Sexta", "Sabado"};
+
+
+void changeTftDisplayBrightness(int brightness) {
   dataFilesManager.save("test", String(brightness));
   TFT_LED_BRIGHTNESS = brightness;
   analogWrite(TFT_LED, brightness);
 }
 
-void setupTftBrightness() {
+void setupTftDisplayBrightness() {
   pinMode(TFT_LED, OUTPUT);
 
   String brightness = dataFilesManager.load("test");
@@ -67,7 +90,7 @@ void setupTftBrightness() {
     TFT_LED_BRIGHTNESS = 400;
   }
 
-  changeTftBrightness(TFT_LED_BRIGHTNESS);
+  changeTftDisplayBrightness(TFT_LED_BRIGHTNESS);
 }
 
 void connectToWifi(const char *ssid, const char *password) {
@@ -121,7 +144,7 @@ void alarmCallback() {
   // Set color to white
   irsend.sendNEC(0xFFC03F);
 
-  changeTftBrightness(400);
+  changeTftDisplayBrightness(400);
   
   // reduce brightness
   for(int i = 0; i < 10; i++) {
@@ -140,21 +163,17 @@ void alarmCallback() {
 
 AlarmsManager alarmsManager(dataFilesManager, timeClient, alarmCallback);
 
-int currentMinute = 0;
-int currentHour = 0;
-
-void setupTft() {
+void setupTftDisplay() {
   analogWrite(TFT_LED, 400);
   tft.init(240, 320);
   tft.invertDisplay(false);
   tft.setTextWrap(false);
   tft.setRotation(1);
-  tft.setFont(&whitrabt55pt7b);
 
-  setupTftBrightness();
+  setupTftDisplayBrightness();
 }
 
-void printTime() {
+void printInfoOnDisplay() {
   timeClient.update();
 
   currentMinute = timeClient.getMinutes();
@@ -163,17 +182,140 @@ void printTime() {
   tft.fillScreen(ST7735_BLACK);  // fill screen with black color
   tft.setTextColor(ST7735_WHITE, ST7735_BLACK);  // set text color to white and black background
 
-  tft.setCursor(5, 80); // X, Y
+  // date
+  tft.setFont(&whitrabt11pt7b);
+  tft.setCursor(20, 20);
+  tft.print(date);
+
+  // hour
+  tft.setFont(&whitrabt55pt7b);
+  tft.setCursor(5, 110); // X, Y
   tft.print(currentHour < 10 ? "0" : "");
   tft.print(currentHour);
   tft.print("h");
   tft.print(currentMinute < 10 ? "0" : "");
   tft.print(currentMinute);
-  // tft.print("00h00");
 
-  // tft.setTextSize(2);
-  // tft.setCursor(10, 100);
-  // tft.print(alarmsManager.getFormattedDate());
+  // weather
+  tft.setFont(&whitrabt11pt7b);
+  tft.setCursor(20, 160);
+  tft.print(currentWeatherText);
+
+  // temperature
+  tft.setFont(&whitrabt40pt7b);
+  tft.setCursor(5, 230);
+  tft.print(String(currentTemperature) + "'C");
+
+  // forecast
+  tft.setFont(&whitrabt11pt7b);
+  tft.setCursor(200, 200);
+  tft.print("min: " + String(forecastMinTemperature) + "'C");
+  tft.setCursor(200, 225);
+  tft.print("max: " + String(forecastMaxTemperature) + "'C");
+}
+
+void updateForecast() {
+  http.begin(client, "http://dataservice.accuweather.com/forecasts/v1/daily/1day/" + String(SECRET_ACCUWEATHER_LOCATION_KEY) + "?apikey=" + String(SECRET_ACCUWEATHER_API_KEY) + "&language=pt-br&metric=true");
+
+  int httpCode = http.GET();
+  String payload = "{}";
+
+  if(httpCode == 200) {
+    payload = http.getString();
+  } else {
+    Serial.println("Error on HTTP request");
+    Serial.println(httpCode);
+  }
+
+  http.end();
+  
+  DeserializationError error = deserializeJson(doc, payload);
+
+  if(error) {
+    Serial.println("Error deserializing weather");
+    Serial.println(error.c_str());
+    return;
+  }
+
+  JsonObject forecast = doc["DailyForecasts"][0];
+
+  if(!forecast.containsKey("Temperature")) {
+    Serial.println("No temperature found");
+    return;
+  }
+
+  forecastMinTemperature = forecast["Temperature"]["Minimum"]["Value"].as<int>();
+  forecastMaxTemperature = forecast["Temperature"]["Maximum"]["Value"].as<int>();
+
+  dataFilesManager.save("maxTemperature", String(forecastMaxTemperature));
+  dataFilesManager.save("minTemperature", String(forecastMinTemperature));
+}
+
+void setupForecastTemperature() {
+  String loadedMaxTemperature = dataFilesManager.load("maxTemperature");
+  String loadedMinTemperature = dataFilesManager.load("minTemperature");
+
+  if(loadedMaxTemperature.length() > 0 && loadedMinTemperature.length() > 0) {
+    forecastMaxTemperature = loadedMaxTemperature.toInt();
+    forecastMinTemperature = loadedMinTemperature.toInt();
+  } else {
+    updateForecast();
+  }
+}
+
+void updateDateTime() {
+  timeClient.update();
+
+  time_t epochTime = timeClient.getEpochTime();
+  struct tm *ptm = gmtime ((time_t *)&epochTime); 
+  int monthDay = ptm->tm_mday;
+  int currentMonth = ptm->tm_mon+1;
+
+  date = String(days[ptm->tm_wday]) + ", " + String(monthDay) + " de " + String(months[currentMonth-1]); 
+}
+
+void updateWeather() {
+  http.begin(client, "http://dataservice.accuweather.com/currentconditions/v1/" + String(SECRET_ACCUWEATHER_LOCATION_KEY) + "?apikey=" + String(SECRET_ACCUWEATHER_API_KEY) + "&language=pt-br");
+
+  int httpCode = http.GET();
+  String payload = "{}";
+
+  if(httpCode == 200) {
+    payload = http.getString();
+  } else {
+    Serial.println("Error on HTTP request");
+    Serial.println(httpCode);
+  }
+
+  http.end();
+  
+  DeserializationError error = deserializeJson(doc, payload);
+
+  if(error) {
+    Serial.println("Error deserializing weather");
+    Serial.println(error.c_str());
+    return;
+  }
+
+  JsonObject weather = doc[0];
+
+  currentTemperature = weather["Temperature"]["Metric"]["Value"].as<int>();
+  currentWeatherText = weather["WeatherText"].as<String>();
+
+  dataFilesManager.save("temperature", String(currentTemperature));
+  dataFilesManager.save("weatherText", currentWeatherText);
+}
+
+void setupWeather() {
+  String loadedTemperature = dataFilesManager.load("temperature");
+  String loadedWeatherText = dataFilesManager.load("weatherText");
+
+  if(loadedTemperature.length() > 0 && loadedWeatherText.length() > 0) {
+    currentTemperature = loadedTemperature.toInt();
+    currentWeatherText = loadedWeatherText;
+  } else {
+    updateWeather();
+  }
 }
 
 void handleSaveAlarms() {
@@ -213,25 +355,42 @@ void setup() {
   dataFilesManager.begin();
   alarmsManager.begin();
 
+  // Gets current weather and forecast
+  setupWeather();
+  setupForecastTemperature();
+  updateDateTime();
+
   // Setups TFT screen and prints time
-  setupTft();
-  printTime();
+  setupTftDisplay();
+  printInfoOnDisplay();
 
   // Prints time to screen every minute
   Alarm.timerOnce(60 - timeClient.getSeconds(), []() {
-    printTime();
-    Alarm.timerRepeat(60, printTime);
+    printInfoOnDisplay();
+    Alarm.timerRepeat(60, printInfoOnDisplay);
+  });
+
+  // updates weather every 30 minutes
+  Alarm.timerRepeat(60*30, updateWeather);
+
+  // updates forecast every 6 hours
+  Alarm.timerRepeat(60*60*6, updateForecast);
+
+  // updates date every day
+  Alarm.alarmRepeat(0, 0, 0, []() {
+    updateDateTime();
   });
 
   // dims the screen at 10pm
   Alarm.alarmRepeat(22, 0, 0, []() {
-    changeTftBrightness(5);
+    changeTftDisplayBrightness(5);
   });
 
   // brightens the screen at 10am
   Alarm.alarmRepeat(10, 0, 0, []() {
-    changeTftBrightness(400);
+    changeTftDisplayBrightness(400);
   });
+
 
   // Setups web server
   webServer.begin();
