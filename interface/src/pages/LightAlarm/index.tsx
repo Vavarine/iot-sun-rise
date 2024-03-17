@@ -42,9 +42,15 @@ export function LightAlarm() {
   const fetchAlarms = async () => {
     setLoading(true);
     const response = await fetch("https://sunrise.evailson.dev/api/alarms");
-    const data = await response.json();
+    try {
+      const data = await response.json();
+      setAlarms(data!.alarms || []);
 
-    setAlarms(data!.alarms || []);
+    } catch (error) {
+      console.error(error);
+      setAlarms([]);
+    }
+
     setLoading(false);
   };
 

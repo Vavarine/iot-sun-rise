@@ -45,7 +45,7 @@ int TFT_LED_BRIGHTNESS;
 
 
 void changeTftBrightness(int brightness) {
-  dataFilesManager.save("tft-brightness", String(brightness));
+  dataFilesManager.save("test", String(brightness));
   TFT_LED_BRIGHTNESS = brightness;
   analogWrite(TFT_LED, brightness);
 }
@@ -53,7 +53,7 @@ void changeTftBrightness(int brightness) {
 void setupTftBrightness() {
   pinMode(TFT_LED, OUTPUT);
 
-  String brightness = dataFilesManager.load("tft-brightness");
+  String brightness = dataFilesManager.load("test");
 
   if(brightness.length() > 0) {
     TFT_LED_BRIGHTNESS = brightness.toInt();
@@ -61,10 +61,9 @@ void setupTftBrightness() {
     TFT_LED_BRIGHTNESS = 400;
   }
 
-  Serial.println("TFT_LED_BRIGHTNESS: " + String(TFT_LED_BRIGHTNESS));
-
   changeTftBrightness(TFT_LED_BRIGHTNESS);
 }
+
 void connectToWifi(const char *ssid, const char *password) {
   Serial.println("");
   Serial.print("Connecting to ");
@@ -200,10 +199,9 @@ void setup() {
 
   connectToWifi(SECRET_SSID, SECRET_PASSWORD);
 
-  setupTft();
-
   dataFilesManager.begin();
   alarmsManager.begin();
+  setupTft();
 
   printTime();
 

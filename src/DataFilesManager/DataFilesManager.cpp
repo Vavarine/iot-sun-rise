@@ -1,5 +1,6 @@
 #include "DataFilesManager.h"
 #include "LittleFS.h"
+#include "FS.h"
 
 DataFilesManager::DataFilesManager(const String &baseDir) : baseDirectory(baseDir) {}
 
@@ -13,10 +14,20 @@ void DataFilesManager::begin() {
 void DataFilesManager::save(const String &filename, const String &content) {
   const String path = baseDirectory + "/" + filename;
 
-  Serial.println("Saving file: " + path);
+  Serial.println("Writing file: " + path);
 
   File file = LittleFS.open(path, "w");
-  file.print(content);
+  
+  if(!file){
+      Serial.println("- failed to open file for writing");
+      return;
+  }
+  if(file.print(content)){
+      Serial.println("- file written");
+  } else {
+      Serial.println("- write failed");
+  }
+
   file.close();
 }
 
@@ -26,6 +37,8 @@ String DataFilesManager::load(const String &filename) {
   Serial.println("Loading file: " + path);
 
   if(!LittleFS.exists(path)) {
+    Serial.println("File does not exist: " + path);
+
     return "";
   }
 
