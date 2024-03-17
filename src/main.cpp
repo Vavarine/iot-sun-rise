@@ -10,6 +10,8 @@
 #include <Adafruit_ST7789.h>
 #include <Adafruit_ST7735.h>
 #include "fonts/whitrabt55pt7b.h"
+#include <NTPClient.h>
+#include <WiFiUdp.h>
 
 #include "secrets.h"
 #include "WebServer/WebServer.h"
@@ -40,6 +42,10 @@ IRsend irsend(kIrLed);
 WebServer webServer;
 DataFilesManager dataFilesManager("/json-data-files");
 JsonDocument doc;
+
+// Define NTP Client to get time
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, "pool.ntp.org");
 
 int TFT_LED_BRIGHTNESS;
 
@@ -132,7 +138,7 @@ void alarmCallback() {
   Serial.println("Alarm callback");
 }
 
-AlarmsManager alarmsManager(dataFilesManager, alarmCallback);
+AlarmsManager alarmsManager(dataFilesManager, timeClient, alarmCallback);
 
 int currentMinute = 0;
 int currentHour = 0;
@@ -149,12 +155,10 @@ void setupTft() {
 }
 
 void printTime() {
-  if(alarmsManager.getMinute() == currentMinute) {
-    return;
-  }
+  timeClient.update();
 
-  currentMinute = alarmsManager.getMinute();
-  currentHour = alarmsManager.getHour();
+  currentMinute = timeClient.getMinutes();
+  currentHour = timeClient.getHours();
 
   tft.fillScreen(ST7735_BLACK);  // fill screen with black color
   tft.setTextColor(ST7735_WHITE, ST7735_BLACK);  // set text color to white and black background
@@ -191,29 +195,48 @@ void setup() {
   Serial.println("Starting up");
 
   assert(irutils::lowLevelSanityCheck() == 0);
-
+  
   pinMode(DEBUG_LED, OUTPUT);
   blink(1, 100, DEBUG_LED);
-
+  
   irsend.begin();
 
+  // Connects to wifi
   connectToWifi(SECRET_SSID, SECRET_PASSWORD);
 
+  // Setups time client
+  timeClient.begin();
+  timeClient.update();
+  timeClient.setTimeOffset(-10800); // GMT-3
+
+  // Setups alarms manager and data files manager
   dataFilesManager.begin();
   alarmsManager.begin();
-  setupTft();
 
+  // Setups TFT screen and prints time
+  setupTft();
   printTime();
 
-  Alarm.timerRepeat(1, printTime);
+  // Prints time to screen every minute
+  Alarm.timerOnce(60 - timeClient.getSeconds(), []() {
+    printTime();
+    Alarm.timerRepeat(60, printTime);
+  });
 
   // dims the screen at 10pm
   Alarm.alarmRepeat(22, 0, 0, []() {
     changeTftBrightness(5);
   });
 
+  // brightens the screen at 10am
+  Alarm.alarmRepeat(10, 0, 0, []() {
+    changeTftBrightness(400);
+  });
+
+  // Setups web server
   webServer.begin();
 
+  // Setups routes
   webServer.on("/api", HTTP_GET, handleRoot);
   webServer.on("/api/ir-send", HTTP_POST, handleIrSend);
   webServer.on("/api/alarms", HTTP_POST, handleSaveAlarms);
