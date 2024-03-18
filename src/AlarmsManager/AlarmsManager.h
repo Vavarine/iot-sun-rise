@@ -12,7 +12,6 @@ public:
   AlarmsManager(DataFilesManager &dataFilesManager, NTPClient &timeClient, void (*callback)() = 0) : dataFilesManager(dataFilesManager), timeClient(timeClient), callbackFunction(callback) {}
   void begin();
   void update();
-  void setTimeCallback(void (*callback)());
   bool saveAlarms(const String &alarm);
   String loadAlarms();
 

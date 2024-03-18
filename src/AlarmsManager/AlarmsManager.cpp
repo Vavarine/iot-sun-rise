@@ -7,11 +7,59 @@
 
 JsonDocument alarmsDoc;
 
-// // months
-// const char *months[] = {"janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"};
-// // days
-// const char *days[] = {"Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"};
+int* alarmIds = nullptr;
+// Track the current size and capacity of the array
+int alarmsIdsSize = 0;
+int alarmsIdsCapacity = 0;
+
+// Function to add a new element to the array
+void addAlarmId(int newValue) {
+    // Check if we need to resize the array
+    if (alarmsIdsSize >= alarmsIdsCapacity) {
+        // Double the capacity (or use any other resizing strategy)
+        alarmsIdsCapacity = (alarmsIdsCapacity == 0) ? 1 : alarmsIdsCapacity * 2;
+        
+        // Create a new array with the increased capacity
+        int* newArray = new int[alarmsIdsCapacity];
+        
+        // Copy elements from the old array to the new one
+        for (int i = 0; i < alarmsIdsSize; i++) {
+            newArray[i] = alarmIds[i];
+        }
+        
+        // Delete the old array
+        delete[] alarmIds;
+        
+        // Update the pointer to point to the new array
+        alarmIds = newArray;
+    }
     
+    // Add the new value to the array
+    alarmIds[alarmsIdsSize] = newValue;
+    
+    // Increment the size
+    alarmsIdsSize++;
+}
+
+void resetAlarmIds() {
+  if(alarmsIdsSize > 0) {
+    // Reseting alarms
+    Serial.printf("Total Alarms ID´s before cleaning: %d \n", Alarm.count());     //Total id´s before
+    for(int i = 0; i < alarmsIdsSize; i++) {
+      Alarm.free(alarmIds[i]);
+    }
+    Serial.printf("Total Alarm ID´s after cleaning: %d \n", Alarm.count());     //Total id´s after, must be 0
+  }
+
+  if(alarmIds != nullptr) {
+    delete[] alarmIds;
+  }
+
+  alarmIds = nullptr;
+  alarmsIdsSize = 0;
+  alarmsIdsCapacity = 0;
+}
+
 void AlarmsManager::begin() {
   dataFilesManager.begin();
   
@@ -19,12 +67,10 @@ void AlarmsManager::begin() {
   setupAlarms();
 }
 
-void AlarmsManager::setTimeCallback(void (*callback)()) {
-  Alarm.timerRepeat(1, callback);
-}
-
 void AlarmsManager::setupTime() {
+  timeClient.begin();
   timeClient.update();
+  timeClient.setTimeOffset(-10800); // GMT-3
 
   // Set time
   time_t epochTime = timeClient.getEpochTime();
@@ -62,12 +108,7 @@ void AlarmsManager::setupAlarms() {
 
   Serial.println("Alarms found");
 
-  if(Alarm.count() > 0) {
-    // Reseting alarms
-    Serial.printf("Total Alarms ID´s before cleaning: %d \n", Alarm.count());     //Total id´s before
-    for (byte id = 0; id < 255; id++)  { Alarm.free(id);  }    //Cron_IDs are numbered from 0 to 254  
-    Serial.printf("Total Alarm ID´s after cleaning: %d \n", Alarm.count());     //Total id´s after, must be 0
-  }
+  resetAlarmIds();
 
   JsonArray alarmsArray = alarmsDoc["alarms"].as<JsonArray>();
 
@@ -78,31 +119,31 @@ void AlarmsManager::setupAlarms() {
     if(!alarm["enabled"]) continue;
 
     if(alarm["days"]["sunday"]) {
-      Alarm.alarmRepeat(dowSunday, hour, minute, 0, callbackFunction);
+      addAlarmId(Alarm.alarmRepeat(dowSunday, hour, minute, 0, callbackFunction));
     }
 
     if(alarm["days"]["monday"]) {
-      Alarm.alarmRepeat(dowMonday, hour, minute, 0, callbackFunction);
+      addAlarmId(Alarm.alarmRepeat(dowMonday, hour, minute, 0, callbackFunction));
     }
 
     if(alarm["days"]["tuesday"]) {
-      Alarm.alarmRepeat(dowTuesday, hour, minute, 0, callbackFunction);
+      addAlarmId(Alarm.alarmRepeat(dowTuesday, hour, minute, 0, callbackFunction));
     }
 
     if(alarm["days"]["wednesday"]) {
-      Alarm.alarmRepeat(dowWednesday, hour, minute, 0, callbackFunction);
+      addAlarmId(Alarm.alarmRepeat(dowWednesday, hour, minute, 0, callbackFunction));
     }
 
     if(alarm["days"]["thursday"]) {
-      Alarm.alarmRepeat(dowThursday, hour, minute, 0, callbackFunction);
+      addAlarmId(Alarm.alarmRepeat(dowThursday, hour, minute, 0, callbackFunction));
     }
 
     if(alarm["days"]["friday"]) {
-      Alarm.alarmRepeat(dowFriday, hour, minute, 0, callbackFunction);
+      addAlarmId(Alarm.alarmRepeat(dowFriday, hour, minute, 0, callbackFunction));
     }
 
     if(alarm["days"]["saturday"]) {
-      Alarm.alarmRepeat(dowSaturday, hour, minute, 0, callbackFunction);
+      addAlarmId(Alarm.alarmRepeat(dowSaturday, hour, minute, 0, callbackFunction));
     }
   }
 

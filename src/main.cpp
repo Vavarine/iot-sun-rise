@@ -74,7 +74,7 @@ const char *days[] = {"Domingo", "Segunda", "Terca", "Quarta", "Quinta", "Sexta"
 
 
 void changeTftDisplayBrightness(int brightness) {
-  dataFilesManager.save("test", String(brightness));
+  dataFilesManager.save("brightness", String(brightness));
   TFT_LED_BRIGHTNESS = brightness;
   analogWrite(TFT_LED, brightness);
 }
@@ -82,7 +82,7 @@ void changeTftDisplayBrightness(int brightness) {
 void setupTftDisplayBrightness() {
   pinMode(TFT_LED, OUTPUT);
 
-  String brightness = dataFilesManager.load("test");
+  String brightness = dataFilesManager.load("brightness");
 
   if(brightness.length() > 0) {
     TFT_LED_BRIGHTNESS = brightness.toInt();
@@ -214,55 +214,6 @@ void printInfoOnDisplay() {
   tft.print("max: " + String(forecastMaxTemperature) + "'C");
 }
 
-void updateForecast() {
-  http.begin(client, "http://dataservice.accuweather.com/forecasts/v1/daily/1day/" + String(SECRET_ACCUWEATHER_LOCATION_KEY) + "?apikey=" + String(SECRET_ACCUWEATHER_API_KEY) + "&language=pt-br&metric=true");
-
-  int httpCode = http.GET();
-  String payload = "{}";
-
-  if(httpCode == 200) {
-    payload = http.getString();
-  } else {
-    Serial.println("Error on HTTP request");
-    Serial.println(httpCode);
-  }
-
-  http.end();
-  
-  DeserializationError error = deserializeJson(doc, payload);
-
-  if(error) {
-    Serial.println("Error deserializing weather");
-    Serial.println(error.c_str());
-    return;
-  }
-
-  JsonObject forecast = doc["DailyForecasts"][0];
-
-  if(!forecast.containsKey("Temperature")) {
-    Serial.println("No temperature found");
-    return;
-  }
-
-  forecastMinTemperature = forecast["Temperature"]["Minimum"]["Value"].as<int>();
-  forecastMaxTemperature = forecast["Temperature"]["Maximum"]["Value"].as<int>();
-
-  dataFilesManager.save("maxTemperature", String(forecastMaxTemperature));
-  dataFilesManager.save("minTemperature", String(forecastMinTemperature));
-}
-
-void setupForecastTemperature() {
-  String loadedMaxTemperature = dataFilesManager.load("maxTemperature");
-  String loadedMinTemperature = dataFilesManager.load("minTemperature");
-
-  if(loadedMaxTemperature.length() > 0 && loadedMinTemperature.length() > 0) {
-    forecastMaxTemperature = loadedMaxTemperature.toInt();
-    forecastMinTemperature = loadedMinTemperature.toInt();
-  } else {
-    updateForecast();
-  }
-}
-
 void updateDateTime() {
   timeClient.update();
 
@@ -275,7 +226,7 @@ void updateDateTime() {
 }
 
 void updateWeather() {
-  http.begin(client, "http://dataservice.accuweather.com/currentconditions/v1/" + String(SECRET_ACCUWEATHER_LOCATION_KEY) + "?apikey=" + String(SECRET_ACCUWEATHER_API_KEY) + "&language=pt-br");
+  http.begin(client, "http://api.openweathermap.org/data/3.0/onecall?lat=" + String(SECRET_LAT) + "&lon=" + String(SECRET_LON) + "&appid=" + String(SECRET_OPENWEATHER_API_KEY) + "&units=metric&lang=pt_br&exclude=minutely,hourly,alerts");
 
   int httpCode = http.GET();
   String payload = "{}";
@@ -283,8 +234,10 @@ void updateWeather() {
   if(httpCode == 200) {
     payload = http.getString();
   } else {
+    payload = http.getString();
     Serial.println("Error on HTTP request");
     Serial.println(httpCode);
+    return;
   }
 
   http.end();
@@ -297,25 +250,65 @@ void updateWeather() {
     return;
   }
 
-  JsonObject weather = doc[0];
+  JsonObject weather = doc.as<JsonObject>();
 
-  currentTemperature = weather["Temperature"]["Metric"]["Value"].as<int>();
-  currentWeatherText = weather["WeatherText"].as<String>();
+  currentTemperature = weather["current"]["temp"].as<int>();
+  currentWeatherText = weather["current"]["weather"][0]["description"].as<String>();
+  forecastMinTemperature = weather["daily"][0]["temp"]["min"].as<int>();
+  forecastMaxTemperature = weather["daily"][0]["temp"]["max"].as<int>();
 
   dataFilesManager.save("temperature", String(currentTemperature));
   dataFilesManager.save("weatherText", currentWeatherText);
+  dataFilesManager.save("maxTemperature", String(forecastMaxTemperature));
+  dataFilesManager.save("minTemperature", String(forecastMinTemperature));
 }
 
 void setupWeather() {
   String loadedTemperature = dataFilesManager.load("temperature");
   String loadedWeatherText = dataFilesManager.load("weatherText");
+  String loadedMaxTemperature = dataFilesManager.load("maxTemperature");
+  String loadedMinTemperature = dataFilesManager.load("minTemperature");
 
-  if(loadedTemperature.length() > 0 && loadedWeatherText.length() > 0) {
+  if(loadedTemperature.length() > 0 && loadedWeatherText.length() > 0 && loadedMaxTemperature.length() > 0 && loadedMinTemperature.length() > 0){
     currentTemperature = loadedTemperature.toInt();
     currentWeatherText = loadedWeatherText;
+    forecastMaxTemperature = loadedMaxTemperature.toInt();
+    forecastMinTemperature = loadedMinTemperature.toInt();
   } else {
     updateWeather();
   }
+}
+
+void handleLoadAlarms() {
+  String alarms = alarmsManager.loadAlarms();
+
+  webServer.send(200, "text/json", alarms);
+}
+
+void setupSystemTasksAlarms() {
+  // Prints time to screen every minute
+  Alarm.timerOnce(60 - timeClient.getSeconds(), []() {
+    printInfoOnDisplay();
+    Alarm.timerRepeat(60, printInfoOnDisplay);
+  });
+
+  // updates weather every 30 minutes
+  Alarm.timerRepeat(60*30, updateWeather);
+
+  // updates date every day
+  Alarm.alarmRepeat(0, 0, 0, []() {
+    updateDateTime();
+  });
+
+  // dims the screen at 10pm
+  Alarm.alarmRepeat(22, 0, 0, []() {
+    changeTftDisplayBrightness(5);
+  });
+
+  // brightens the screen at 10am
+  Alarm.alarmRepeat(10, 0, 0, []() {
+    changeTftDisplayBrightness(400);
+  });
 }
 
 void handleSaveAlarms() {
@@ -324,12 +317,6 @@ void handleSaveAlarms() {
   } else {
     webServer.send(500, "text/json", "{\"success\": false}");
   }
-}
-
-void handleLoadAlarms() {
-  String alarms = alarmsManager.loadAlarms();
-
-  webServer.send(200, "text/json", alarms);
 }
 
 void setup() {
@@ -356,41 +343,16 @@ void setup() {
   alarmsManager.begin();
 
   // Gets current weather and forecast
+  updateWeather();
   setupWeather();
-  setupForecastTemperature();
   updateDateTime();
 
   // Setups TFT screen and prints time
   setupTftDisplay();
   printInfoOnDisplay();
 
-  // Prints time to screen every minute
-  Alarm.timerOnce(60 - timeClient.getSeconds(), []() {
-    printInfoOnDisplay();
-    Alarm.timerRepeat(60, printInfoOnDisplay);
-  });
-
-  // updates weather every 30 minutes
-  Alarm.timerRepeat(60*30, updateWeather);
-
-  // updates forecast every 6 hours
-  Alarm.timerRepeat(60*60*6, updateForecast);
-
-  // updates date every day
-  Alarm.alarmRepeat(0, 0, 0, []() {
-    updateDateTime();
-  });
-
-  // dims the screen at 10pm
-  Alarm.alarmRepeat(22, 0, 0, []() {
-    changeTftDisplayBrightness(5);
-  });
-
-  // brightens the screen at 10am
-  Alarm.alarmRepeat(10, 0, 0, []() {
-    changeTftDisplayBrightness(400);
-  });
-
+  // Setups system tasks
+  setupSystemTasksAlarms();
 
   // Setups web server
   webServer.begin();
