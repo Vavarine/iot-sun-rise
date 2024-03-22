@@ -302,7 +302,7 @@ void setupSystemTasksAlarms() {
 
   // dims the screen at 10pm
   Alarm.alarmRepeat(22, 0, 0, []() {
-    changeTftDisplayBrightness(5);
+    changeTftDisplayBrightness(1);
   });
 
   // brightens the screen at 10am
