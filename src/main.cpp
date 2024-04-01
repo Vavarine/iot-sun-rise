@@ -285,6 +285,18 @@ void handleLoadAlarms() {
   webServer.send(200, "text/json", alarms);
 }
 
+void handleDimScreen() {
+  changeTftDisplayBrightness(1);
+
+  webServer.send(200, "text/json", "{\"success\": true}");
+}
+
+void handleBrightenScreen() {
+  changeTftDisplayBrightness(400);
+  
+  webServer.send(200, "text/json", "{\"success\": true}");
+}
+
 void setupSystemTasksAlarms() {
   // Prints time to screen every minute
   Alarm.timerOnce(60 - timeClient.getSeconds(), []() {
@@ -362,6 +374,8 @@ void setup() {
   webServer.on("/api/ir-send", HTTP_POST, handleIrSend);
   webServer.on("/api/alarms", HTTP_POST, handleSaveAlarms);
   webServer.on("/api/alarms", HTTP_GET, handleLoadAlarms);
+  webServer.on("/api/dim-screen", HTTP_POST, handleDimScreen);
+  webServer.on("/api/brighten-screen", HTTP_POST, handleBrightenScreen);
 }
 
 void loop() {
