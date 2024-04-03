@@ -27,8 +27,8 @@ export function AlarmCard({
       }
     >
       <div>
-        <span class="text-2xl">{time.hour}</span>h
-        <span class="text-2xl">{time.minute}</span>m
+        <span class="text-2xl">{String(time.hour).padStart(2, "0")}</span>h
+        <span class="text-2xl">{String(time.minute).padStart(2, "0")}</span>m
       </div>
       <div>
         <div class="flex align-center">
