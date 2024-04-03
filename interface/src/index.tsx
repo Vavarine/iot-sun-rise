@@ -9,6 +9,7 @@ import { LightAlarm } from "./pages/LightAlarm/index.js";
 import { Footer } from "./components/Footer.js";
 
 import "./index.css";
+import Config from "./pages/Config/index.js";
 
 export function App() {
   return (
@@ -18,6 +19,7 @@ export function App() {
         <Router>
           <Route path="/" component={RemoteControl} />
           <Route path="/light-alarm" component={LightAlarm} />
+          <Route path="/configs" component={Config} />
           <Route default component={NotFound} />
         </Router>
       </main>

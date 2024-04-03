@@ -10,7 +10,7 @@ export function Header() {
     <header class="">
       <div class="navbar rounded-b-xl shadow-xl overflow-visible">
         <div class="flex-1 ">
-          <a class="btn btn-ghost text-xl gap-2">
+          <a href="/" class="btn btn-ghost text-xl gap-2">
             <Icon icon={sunRiseIcon} size={24} />
             SunRise
           </a>
@@ -20,6 +20,9 @@ export function Header() {
             <Icon icon={moreHorizontalIcon} />
           </div>
           <ul class="menu menu-sm dropdown-content shadow rounded-box mt-4 bg-base-200">
+            <li>
+              <a href="/configs">Configs</a>
+            </li>
             <li>
               <a href="/">Logout</a>
             </li>
