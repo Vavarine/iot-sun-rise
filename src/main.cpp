@@ -20,6 +20,8 @@
 #include "DataFilesManager/DataFilesManager.h"
 #include "AlarmsManager/AlarmsManager.h"
 #include "utils/utils.h"
+#include "OTAManager/OTAManager.h"
+
 #include "fonts/whitrabt55pt7b.h"
 #include "fonts/whitrabt40pt7b.h"
 #include "fonts/whitrabt11pt7b.h"
@@ -45,6 +47,7 @@ const uint32_t kBaudRate = 9600;
 IRsend irsend(kIrLed); 
 WebServer webServer;
 DataFilesManager dataFilesManager("/json-data-files");
+OTAManager otaManager;
 JsonDocument doc;
 
 // Define NTP Client to get time
@@ -335,6 +338,7 @@ void setup() {
   Serial.begin(kBaudRate);
   Serial.println("Starting up");
 
+
   assert(irutils::lowLevelSanityCheck() == 0);
   
   pinMode(DEBUG_LED, OUTPUT);
@@ -344,6 +348,9 @@ void setup() {
 
   // Connects to wifi
   connectToWifi(SECRET_SSID, SECRET_PASSWORD);
+
+  // Starts OTA manager
+  otaManager.begin();
 
   // Setups time client
   timeClient.begin();
@@ -379,6 +386,7 @@ void setup() {
 }
 
 void loop() {
+  otaManager.loop();
   alarmsManager.update();
   webServer.handleClient();
 }
