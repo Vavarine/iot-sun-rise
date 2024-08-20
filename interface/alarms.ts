@@ -73,7 +73,7 @@ const data = {
 
 console.log("Saving alarms...");
 
-fetch("https://sunrise.evailson.dev/api/alarms", {
+fetch("/api/alarms", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",

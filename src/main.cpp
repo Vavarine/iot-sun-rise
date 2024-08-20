@@ -334,6 +334,15 @@ void handleSaveAlarms() {
   }
 }
 
+void handleRestart() {
+  Serial.println("GET /api/restart");
+  webServer.send(201);
+  delay(500);
+  WiFi.disconnect(true);
+  delay(500);
+  ESP.restart();
+}
+
 void setup() {
   Serial.begin(kBaudRate);
   Serial.println("Starting up");
@@ -378,11 +387,12 @@ void setup() {
 
   // Setups routes
   webServer.on("/api", HTTP_GET, handleRoot);
-  webServer.on("/api/ir-send", HTTP_POST, handleIrSend);
-  webServer.on("/api/alarms", HTTP_POST, handleSaveAlarms);
+  webServer.on("/api/ir-send", HTTP_POST, REQUIRE_AUTH, handleIrSend);
+  webServer.on("/api/alarms", HTTP_POST, REQUIRE_AUTH, handleSaveAlarms);
   webServer.on("/api/alarms", HTTP_GET, handleLoadAlarms);
-  webServer.on("/api/dim-screen", HTTP_POST, handleDimScreen);
-  webServer.on("/api/brighten-screen", HTTP_POST, handleBrightenScreen);
+  webServer.on("/api/dim-screen", HTTP_POST, REQUIRE_AUTH, handleDimScreen);
+  webServer.on("/api/brighten-screen", HTTP_POST, REQUIRE_AUTH, handleBrightenScreen);
+  webServer.on("/api/restart", HTTP_POST, REQUIRE_AUTH, handleRestart);
 }
 
 void loop() {

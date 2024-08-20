@@ -2,6 +2,7 @@ import { Alarm } from "@/types";
 import { EditAlarmModal } from "./EditAlarmModal";
 
 interface AlarmProps extends Alarm {
+  onSave: () => void;
   onRemove: () => void;
   onEdit: (alarm: Alarm) => void;
 }
@@ -11,6 +12,7 @@ export function AlarmCard({
   time,
   days,
   enabled,
+  onSave,
   onRemove,
   onEdit,
 }: AlarmProps) {
@@ -58,6 +60,7 @@ export function AlarmCard({
         modalId={id}
         onRemove={onRemove}
         onEdit={onEdit}
+        onSave={onSave}
         alarm={{
           id,
           days,

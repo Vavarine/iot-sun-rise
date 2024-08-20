@@ -1,9 +1,22 @@
+import { useAuth } from "@/hooks/auth";
 import sunFilledIcon from "../../assets/sun-filled.svg?raw";
 import sunIcon from "../../assets/sun.svg?raw";
 import { COLOR_BUTTONS } from "../../constants/COLOR_BUTTONS";
+import { useToast } from "@/hooks/toast";
 
-export function RemoteControl() {
+export function RemoteControlPage() {
+  const {user} = useAuth()
+  const { addToast } = useToast()
+
   const handleButtonClick = async (e: Event) => {
+    if (!user) {
+			addToast({
+				description: 'This action requires authentication',
+				type: 'error'
+			})
+			return
+		}
+
     const irCode = (e.currentTarget as HTMLElement).dataset.ir;
     console.log(irCode);
 
@@ -11,7 +24,7 @@ export function RemoteControl() {
       code: parseInt(irCode),
     };
 
-    await fetch("https://sunrise.evailson.dev/api/ir-send", {
+    await fetch("/api/ir-send", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

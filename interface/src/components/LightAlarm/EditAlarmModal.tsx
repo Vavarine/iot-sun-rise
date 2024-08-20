@@ -5,18 +5,20 @@ interface EditAlarmModalProps {
   modalId: string;
   alarm?: Alarm;
   onRemove: () => void;
+  onSave: () => void;
   onEdit: (alarm: Alarm) => void;
 }
 
 export function EditAlarmModal({
   modalId,
+  onSave,
   onEdit,
   onRemove,
   alarm: { days, enabled, time, id },
 }: EditAlarmModalProps) {
   return (
     <dialog id={modalId} className="modal modal-bottom sm:modal-middle">
-      <div className="modal-box">
+      <div className="modal-box !max-w-96">
         <form method="dialog">
           <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
             ✕
@@ -55,9 +57,15 @@ export function EditAlarmModal({
               );
             })}
           </div>
-          <form method="dialog" class="w-full">
-            <button class="btn btn-outline btn-error w-full" onClick={onRemove}>
+          <form method="dialog" class="w-full max-w-72 flex gap-2">
+            <button class="btn btn-outline btn-error" onClick={onRemove}>
               Remove
+            </button>
+            <button
+              class="btn btn-primary flex-1"
+              onClick={onSave}
+            >
+              Save
             </button>
           </form>
         </div>

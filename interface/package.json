@@ -9,12 +9,18 @@
 	"dependencies": {
 		"preact": "^10.13.1",
 		"preact-iso": "^2.3.2",
-		"preact-render-to-string": "^6.3.1"
+		"preact-render-to-string": "^6.3.1",
+		"uuid": "^10.0.0"
 	},
 	"devDependencies": {
+		"@ikoz/vite-plugin-preact-esp32": "^0.1.0",
 		"@preact/preset-vite": "^2.5.0",
+		"@types/node": "^22.1.0",
+		"@types/uuid": "^10.0.0",
 		"autoprefixer": "^10.4.16",
+		"clsx": "^2.1.1",
 		"daisyui": "^4.5.0",
+		"dotenv": "^16.4.5",
 		"eslint": "^8.56.0",
 		"eslint-config-preact": "^1.3.0",
 		"postcss": "^8.4.33",

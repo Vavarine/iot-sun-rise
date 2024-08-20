@@ -1,13 +1,25 @@
+import { useAuth } from "@/hooks/auth";
+import { useToast } from "@/hooks/toast";
 import { useState } from "preact/hooks";
 
-export default function Config() {
+export function ConfigPage() {
   const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
+  const { addToast } = useToast();
 
   const handleDim = async () => {
+    if (!user) {
+			addToast({
+				description: 'This action requires authentication',
+				type: 'error'
+			})
+			return
+		}
+
     setLoading(true);
 
     try {
-      await fetch("https://sunrise.evailson.dev/api/dim-screen", {
+      await fetch("/api/dim-screen", {
         method: "POST",
       });
     } finally {
@@ -16,10 +28,18 @@ export default function Config() {
   };
 
   const handleBright = async () => {
+    if (!user) {
+			addToast({
+				description: 'This action requires authentication',
+				type: 'error'
+			})
+			return
+		}
+
     setLoading(true);
 
     try {
-      await fetch("https://sunrise.evailson.dev/api/brighten-screen", {
+      await fetch("/api/brighten-screen", {
         method: "POST",
       });
     } finally {

@@ -3,27 +3,35 @@ import { render } from "preact";
 import { LocationProvider, Router, Route } from "preact-iso";
 
 import { Header } from "./components/Header.jsx";
-import { RemoteControl } from "./pages/RemoteControl/index.js";
-import { NotFound } from "./pages/_404.jsx";
-import { LightAlarm } from "./pages/LightAlarm/index.js";
+import { RemoteControlPage } from "./pages/RemoteControl/index.js";
+import { NotFoundPage } from "./pages/_404.jsx";
+import { LightAlarmPage } from "./pages/LightAlarm/index.js";
 import { Footer } from "./components/Footer.js";
 
 import "./index.css";
-import Config from "./pages/Config/index.js";
+import {ConfigPage} from "./pages/Config/index.js";
+import { ToastProvider } from "./hooks/toast.js";
+import { AuthProvider } from "./hooks/auth.js";
+import { LoginPage } from "./pages/Login/index.js";
 
 export function App() {
   return (
     <LocationProvider>
-      <Header />
-      <main class="flex flex-col items-center mb-auto">
-        <Router>
-          <Route path="/" component={RemoteControl} />
-          <Route path="/light-alarm" component={LightAlarm} />
-          <Route path="/configs" component={Config} />
-          <Route default component={NotFound} />
-        </Router>
-      </main>
-      <Footer />
+      <ToastProvider>
+        <AuthProvider>
+          <Header />
+          <main class="flex flex-col items-center mb-auto">
+            <Router>
+              <Route path="/" component={RemoteControlPage} />
+              <Route path="/light-alarm" component={LightAlarmPage} />
+              <Route path="/configs" component={ConfigPage} />
+              <Route path="/login" component={LoginPage} />
+              <Route default component={NotFoundPage} />
+            </Router>
+          </main>
+          <Footer />
+        </AuthProvider>
+      </ToastProvider>
     </LocationProvider>
   );
 }

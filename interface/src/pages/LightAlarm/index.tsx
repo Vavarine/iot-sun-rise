@@ -3,12 +3,24 @@ import plusIcon from "@assets/plus.svg?raw";
 import { Alarm } from "@/types";
 import { AlarmCard } from "@components/LightAlarm/AlarmCard";
 import Icon from "@/components/Icon";
+import { useToast } from "@/hooks/toast";
+import { useAuth } from "@/hooks/auth";
 
-export function LightAlarm() {
+export function LightAlarmPage() {
   const [loading, setLoading] = useState(false);
   const [alarms, setAlarms] = useState<Alarm[]>([]);
+  const { user } = useAuth();
+  const { addToast } = useToast();
 
   const handleAdd = () => {
+    if (!user) {
+			addToast({
+				description: 'This action requires authentication',
+				type: 'error'
+			})
+			return
+		}
+
     setAlarms([
       {
         id: crypto.randomUUID(),
@@ -32,7 +44,17 @@ export function LightAlarm() {
   };
 
   const handleRemove = (id: string) => {
+    if (!user) {
+			addToast({
+				description: 'This action requires authentication',
+				type: 'error'
+			})
+			return
+		}
+
+    const updatedAlarms = alarms.filter((alarm) => alarm.id !== id);
     setAlarms(alarms.filter((alarm) => alarm.id !== id));
+    saveAlarms(updatedAlarms);
   };
 
   const handleEdit = (alarm: Alarm) => {
@@ -41,10 +63,10 @@ export function LightAlarm() {
 
   const fetchAlarms = async () => {
     setLoading(true);
-    const response = await fetch("https://sunrise.evailson.dev/api/alarms");
+    const response = await fetch("/api/alarms");
     try {
       const data = await response.json();
-      setAlarms(data!.alarms || []);
+      setAlarms(data.alarms ?? []);
 
     } catch (error) {
       console.error(error);
@@ -54,12 +76,24 @@ export function LightAlarm() {
     setLoading(false);
   };
 
-  const saveAlarms = async () => {
+  const handleSaveAlarms = async () => {
+    saveAlarms();
+  };
+
+  const saveAlarms = async (updatedAlarms?: Alarm[]) => {
+    if (!user) {
+			addToast({
+				description: 'This action requires authentication save',
+				type: 'error'
+			})
+			return
+		}
+
     setLoading(true);
     try {
-      await fetch("https://sunrise.evailson.dev/api/alarms", {
+      await fetch("/api/alarms", {
         method: "POST",
-        body: JSON.stringify({ alarms }),
+        body: JSON.stringify({ alarms: updatedAlarms ?? alarms }),
       });
 
       fetchAlarms();
@@ -71,10 +105,6 @@ export function LightAlarm() {
   useState(() => {
     fetchAlarms();
   });
-
-  useEffect(() => {
-    // console.log(alarms);
-  }, [alarms]);
 
   return (
     <div class="container max-w-sm px-4 py-8 flex flex-col justify-center items-center">
@@ -95,6 +125,7 @@ export function LightAlarm() {
               return (
                 <AlarmCard
                   {...alarm}
+                  onSave={handleSaveAlarms}
                   onRemove={() => handleRemove(alarm.id)}
                   onEdit={handleEdit}
                 />
@@ -104,7 +135,7 @@ export function LightAlarm() {
           <div class="mt-8 px-6 w-full flex flex-col gap-4">
             <button
               class="btn w-full btn-primary btn-outline px-8"
-              onClick={saveAlarms}
+              onClick={() => handleSaveAlarms()}
             >
               Save
             </button>

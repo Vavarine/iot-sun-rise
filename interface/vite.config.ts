@@ -1,9 +1,13 @@
 import { defineConfig } from "vite";
 import preact from "@preact/preset-vite";
+import { espViteBuild } from "@ikoz/vite-plugin-preact-esp32";
+import "dotenv/config";
+
+const proxyTarget: string | undefined = process.env.VITE_PROXY;
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [preact()],
+  plugins: [preact(), espViteBuild()],
   resolve: {
     alias: {
       "@components": "/src/components",
@@ -11,4 +15,12 @@ export default defineConfig({
       "@": "/src",
     },
   },
+  server: proxyTarget ? {
+    proxy: {
+      "/api": {
+        target: proxyTarget,
+        changeOrigin: true,
+      }
+    }
+  } : undefined
 });
