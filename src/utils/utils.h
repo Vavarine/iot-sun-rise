@@ -5,4 +5,6 @@
 
 void blink(int times, int delayMs, int LED);
 
+String removeAccents(String str);
+
 #endif

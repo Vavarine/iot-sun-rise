@@ -261,7 +261,7 @@ void updateWeather() {
   forecastMaxTemperature = weather["daily"][0]["temp"]["max"].as<int>();
 
   dataFilesManager.save("temperature", String(currentTemperature));
-  dataFilesManager.save("weatherText", currentWeatherText);
+  dataFilesManager.save("weatherText", removeAccents(currentWeatherText));
   dataFilesManager.save("maxTemperature", String(forecastMaxTemperature));
   dataFilesManager.save("minTemperature", String(forecastMinTemperature));
 }
