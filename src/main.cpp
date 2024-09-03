@@ -347,7 +347,6 @@ void setup() {
   Serial.begin(kBaudRate);
   Serial.println("Starting up");
 
-
   assert(irutils::lowLevelSanityCheck() == 0);
   
   pinMode(DEBUG_LED, OUTPUT);
