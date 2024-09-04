@@ -256,12 +256,12 @@ void updateWeather() {
   JsonObject weather = doc.as<JsonObject>();
 
   currentTemperature = weather["current"]["temp"].as<int>();
-  currentWeatherText = weather["current"]["weather"][0]["description"].as<String>();
+  currentWeatherText = removeAccents(weather["current"]["weather"][0]["description"].as<String>());
   forecastMinTemperature = weather["daily"][0]["temp"]["min"].as<int>();
   forecastMaxTemperature = weather["daily"][0]["temp"]["max"].as<int>();
 
   dataFilesManager.save("temperature", String(currentTemperature));
-  dataFilesManager.save("weatherText", removeAccents(currentWeatherText));
+  dataFilesManager.save("weatherText", currentWeatherText);
   dataFilesManager.save("maxTemperature", String(forecastMaxTemperature));
   dataFilesManager.save("minTemperature", String(forecastMinTemperature));
 }
