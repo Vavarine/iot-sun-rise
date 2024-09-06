@@ -45,7 +45,8 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 const uint16_t kIrLed = 16;  // ESP8266 GPIO pin to use. Recommended: 4 (D2). 
 const uint32_t kBaudRate = 9600;
 IRsend irsend(kIrLed); 
-WebServer webServer;
+Espalexa espalexa;
+WebServer webServer(&espalexa);
 DataFilesManager dataFilesManager("/json-data-files");
 OTAManager otaManager;
 JsonDocument doc;
@@ -343,6 +344,14 @@ void handleRestart() {
   ESP.restart();
 }
 
+void firstLightChanged(uint8_t brightness, uint32_t rgb) {
+  if(brightness) {
+    irsend.sendNEC(0xFFE01F);
+  } else {
+    irsend.sendNEC(0xFF609F);
+  }
+}
+
 void setup() {
   Serial.begin(kBaudRate);
   Serial.println("Starting up");
@@ -380,6 +389,9 @@ void setup() {
 
   // Setups system tasks
   setupSystemTasksAlarms();
+
+  // Adds devices to alexa
+  espalexa.addDevice("cabeceira", firstLightChanged);
 
   // Setups web server
   webServer.begin();

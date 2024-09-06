@@ -1,15 +1,18 @@
 #include <ESP8266WebServer.h>
+#include <Espalexa.h>
+#include <pgmspace.h>
+#include <Espalexa.h>
+
 #include "LittleFS.h"
 #include "WebServer.h"
 #include "utils/utils.h"
 #include "constants.h"
 #include "static_files.h"
-#include <pgmspace.h>
 #include "ArduinoJsonJWT/ArduinoJsonJWT.h"
 #include "utils/User.h"
 #include "secrets.h"
 
-WebServer::WebServer(int port) : server(port) {}
+WebServer::WebServer(Espalexa* _espalexa): server(80), espalexa(_espalexa) { }
 
 const String NO_AUTH_JWT_SECRET = "NO_AUTH";
 const String NO_AUTH_JWT_PAYLOAD = "{\"username\":\"guest\",\"noAuth\":true}";
@@ -21,9 +24,15 @@ ArduinoJsonJWT jwtHandler(SECRET_JWT);
 ArduinoJsonJWT jwtHandler(NO_AUTH_JWT_SECRET);
 #endif
 
+void aaa(uint8_t brightness, uint32_t rgb) {
+  Serial.println("aaa");
+  Serial.println(brightness);
+  Serial.println(rgb);
+}
+
 void WebServer::begin() {
   server.collectHeaders("Cookie");
-  server.begin();
+  espalexa->begin(&server); // this enables the server as well
   server.enableCORS(true);
 
   if(!LittleFS.begin()) {
@@ -103,7 +112,7 @@ void WebServer::begin() {
 }
 
 void WebServer::handleClient() {
-  server.handleClient();
+  espalexa->loop();
 }
 
 void WebServer::on(const String &uri, HTTPMethod method, ESP8266WebServer::THandlerFunction handler) {
@@ -175,7 +184,7 @@ String WebServer::arg(const String &name) {
 }
 
 void WebServer::handleNotFound() {
-  if (!handleFileRead(server.uri())) {
+  if (!espalexa->handleAlexaApiCall(server.uri(),server.arg(0)) && !handleFileRead(server.uri())) {
     // return index.html if it doesn't exist
     server.sendHeader("Content-Encoding", "gzip");
     server.send_P(200, "text/html", (const char *)static_files::f_index_html_contents, static_files::f_index_html_size);

@@ -2,6 +2,8 @@
 #define WEBSERVER_H
 
 #include <ESP8266WebServer.h>
+#include <Espalexa.h>
+
 #include "LittleFS.h"
 #include "utils/User.h"
 
@@ -9,7 +11,7 @@ enum Auth { REQUIRE_AUTH };
 
 class WebServer {
 public:
-  WebServer(int port = 80);
+  WebServer(Espalexa* espalexa);
   typedef std::function<void(User* user)> TAuthenticatedHandlerFunction;
 
   void begin();
@@ -29,6 +31,7 @@ public:
 
 private:
   ESP8266WebServer server;
+  Espalexa* espalexa;
 
   void handleNotFound();
 
