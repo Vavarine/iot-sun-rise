@@ -2,7 +2,9 @@
 
 ## Description
 
-This project uses a ESP8266 to control a bed side lamp. The RGB lamp originally uses a infrared remote control, which is replaced by the ESP8266. 
+This project uses a ESP8266 to control a bed side lamp. The RGB lamp originally uses a infrared remote control, which is replaced by the ESP8266.
+
+**If you'd like to create a similar project, I've also [created a starter](https://github.com/Vavarine/esp8266-preact) template with the core features and functionalities.**
 
 ### Features
 
@@ -29,3 +31,4 @@ The server is written in c++ using the PlatformIO framework. The webserver is ba
 - IR Receiver
 - 5V Power Supply
 - RGB Lamp (with IR remote)
+
